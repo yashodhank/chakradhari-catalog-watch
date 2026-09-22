@@ -6,6 +6,10 @@ Start with `products-manifest.json`. Its `productChunks` array lists relative JS
 
 - Grain: one merchant canonical product URL, not every variant. `id` is the stable monitor identifier.
 - `regular`, `sale`: observed INR prices, null when unavailable. Effective listed price is sale when non-null, otherwise regular. Zero and null are different.
+- `priceStatus`: `listed` when a positive merchant price is displayed; `contact_for_price` when the merchant requests a quote (numeric prices are withheld); `listed_unverified` for older records without a recent detail check; `unknown` otherwise. A schema.org amount does not overrule a visible contact-for-price state.
+- `gender`: `Male`, `Female`, `Unisex`, or `-` (not stated). Unisex means both options appeared among product variants, not a judgment about who should wear the product. This is one canonical product record, not each selectable variant.
+- `imageCandidates`: ordered URLs associated with the same product or main variant. On failed loading the UI tries the next associated image before showing a neutral fallback. Image availability is not guaranteed by the presence of a URL.
+- `detailChecked`: latest successful detail-page fetch for the product when available. Historical records without this field have unverified observation freshness.
 - `availability`: in_stock, out_of_stock or unknown. Unknown is not available stock.
 - `material`, `weightSize`, `subtitle`: merchant text, not independent verification. Capacity is not mass. Gross weight is not net metal content.
 - `firstSeen`, `lastSeen`: catalog sightings, not launch dates or guaranteed detail/price observation times.

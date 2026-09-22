@@ -11,7 +11,7 @@ An independent, public monitor for the product catalog at [chakradhari.com](http
 - `data/run-log.md` — scan coverage and reliability log
 - `data/metal-rates.json` — dated IBJA gold, silver and platinum benchmark observations
 
-Historical rows are never deliberately overwritten. A product is confirmed removed only after two consecutive successful complete sitemap comparisons. Failed or partial scans do not advance removal streaks.
+Price history records actual detail-page fetches on new scans; old history may contain prices carried forward from cached rows and must not be treated as independently observed daily prices. A product is confirmed removed only after two consecutive successful complete sitemap comparisons.
 
 ## Automation
 
@@ -30,7 +30,11 @@ python scripts/build_site.py
 
 ### Metal-value estimates
 
-When a product exposes a usable metal, weight and purity, the dashboard estimates its raw-metal benchmark value. Rates come from IBJA and exclude GST and making charges. Purity inferred from a hallmark is labelled; when purity is absent, the scenario assumption is shown explicitly. The residual is labelled a **non-metal retail premium**, because it can include workmanship, design, stones, packaging, seller margin and other components—not just making charges. An indicative GST component uses 3% of the GST-inclusive jewellery transaction value, consistent with the CBIC gems and jewellery FAQ; it is not an invoice or tax determination.
+When a product exposes an unambiguous metal, net metal weight, seller-stated purity and a sourced rate, the dashboard estimates a raw-metal benchmark value. Ambiguous alloys, plating, composite weights and missing purity show an explicit reason instead. The difference between listed retail and benchmark may include taxes, workmanship, design, stones, packaging and margin; it is not a making-charge or GST determination. Additional metals are recognized but do not get invented benchmark rates.
+
+## Product metadata
+
+The dashboard shows merchant gender choices as Male, Female, Unisex (both choices), or Not stated. A gender claim is descriptive metadata, not a recommendation. Missing images use same-product candidates when available, then a neutral fallback. When the merchant shows “Contact us for price,” the catalog withholds older structured prices and offers a link to the merchant page. The `data-guide.md` explains each public JSON field and its freshness limits.
 
 ## Accuracy and affiliation
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, json, statistics, re
+import csv, json, statistics, re, math
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -7,11 +7,22 @@ ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'data'
 DOCS=ROOT/'docs'
 
-def number(v):
- try: return float(v) if v not in ('',None) else None
+def number(v,positive=False):
+ try:
+  n=float(v) if v not in ('',None) else None
+  return n if n is not None and math.isfinite(n) and (not positive or n>0) else None
  except (TypeError,ValueError): return None
 
 from metal_valuation import metal_estimate
+
+def gender_from_name(name):
+ name=str(name or '').lower()
+ male=bool(re.search(r'\b(?:men|mens|male|man)\b',name))
+ female=bool(re.search(r'\b(?:women|womens|female|woman)\b',name))
+ if re.search(r'\bunisex\b',name) or (male and female): return 'Unisex'
+ if female: return 'Female'
+ if male: return 'Male'
+ return '-'
 
 with (DATA/'current-products.csv').open(encoding='utf-8-sig',newline='') as f:
  rows=[r for r in csv.DictReader(f) if r.get('catalog_status','active')=='active']
@@ -25,11 +36,19 @@ for r in rows:
   'id':r.get('monitor_id',''), 'name':r.get('name_observed',''),
   'url':r.get('canonical_url',''), 'category':r.get('breadcrumb_category_observed',''),
   'categories':r.get('all_categories_observed',''), 'availability':r.get('availability_normalized','unknown'),
-  'regular':number(r.get('regular_price_normalized')), 'sale':number(r.get('sale_price_normalized')),
+  'regular':number(r.get('regular_price_normalized'),True), 'sale':number(r.get('sale_price_normalized'),True),
   'material':r.get('material_observed',''), 'weightSize':r.get('weight_size_observed',''),
   'reviews':number(r.get('review_count_normalized')), 'rating':number(r.get('rating_normalized')),
-  'image':r.get('primary_image_url',''), 'subtitle':r.get('subtitle_observed',''),
+  'image':r.get('primary_image_url',''), 'imageCandidates':[],
+  'subtitle':r.get('subtitle_observed',''),
+  'gender':r.get('gender_observed') or gender_from_name(r.get('name_observed')),
+  'priceStatus':r.get('price_status_observed') or ('listed_unverified' if number(r.get('regular_price_normalized'),True) is not None else 'unknown'),
+  'detailChecked':r.get('detail_last_checked',''),
   'firstSeen':r.get('first_seen',''), 'lastSeen':r.get('last_seen','')}
+ try: p['imageCandidates']=json.loads(r.get('image_candidates_observed') or '[]')[:8]
+ except (TypeError,ValueError): pass
+ if p['image'] and p['image'] not in p['imageCandidates']: p['imageCandidates'].append(p['image'])
+ if p['priceStatus']=='contact_for_price': p['regular']=p['sale']=None
  p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}))
  products.append(p)
 
@@ -56,12 +75,13 @@ category_sources=[s for s in sources if s.get('type') in ('category','collection
 summary={'total':len(products),'inStock':ins,'outOfStock':outs,'unknown':len(products)-ins-outs,
          'currency':'INR','categories':len(category_sources),'categorySuccess':sum(s.get('status')=='success' for s in category_sources),
          'productPagesEnriched':sum(bool(p['name']) for p in products),'onSale':sum(p['sale'] is not None for p in products),
+         'contactForPrice':sum(p['priceStatus']=='contact_for_price' for p in products),'pricedCount':len(prices),
          'medianPrice':statistics.median(prices) if prices else None,'minPrice':min(prices) if prices else None,
          'maxPrice':max(prices) if prices else None,'eventCount':len(events)}
 DOCS.mkdir(exist_ok=True)
 for stale in DOCS.glob('products-*.json'):
  stale.unlink()
-chunk_size=300
+chunk_size=150
 chunk_files=[]
 for i in range(0,len(products),chunk_size):
  name=f'products-{i//chunk_size:02d}.json'
