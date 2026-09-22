@@ -11,38 +11,7 @@ def number(v):
  try: return float(v) if v not in ('',None) else None
  except (TypeError,ValueError): return None
 
-def metal_estimate(p,rates):
- text=' '.join(str(p.get(k) or '') for k in ('name','material','weightSize','subtitle'))
- metal=next((m for m in ('Gold','Silver','Platinum') if m.lower() in text.lower()),None)
- if not metal: return None
- weights=[]
- for value,unit in re.findall(r'(?<![\d.])(\d+(?:\.\d+)?)\s*(kg|grams?|gms?|gm|g)\b',text,re.I):
-  grams=float(value)*(1000 if unit.lower()=='kg' else 1)
-  if 0.01<=grams<=100000: weights.append(grams)
- if not weights: return {'metal':metal,'status':'weight_missing'}
- weight=min(weights)
- purity=None; basis='stated'
- for token,purity_value in [('999',999),('995',995),('925',925),('916',916),('22k',916),('750',750),('18k',750),('585',585),('14k',585),('24k',999)]:
-  if re.search(r'(?<!\d)'+re.escape(token)+r'(?!\d)',text,re.I): purity=purity_value; break
- if purity is None:
-  purity=916 if metal=='Gold' else 925 if metal=='Silver' else 999
-  basis='assumed'
- source_key=f'{metal} {purity}'
- raw=rates.get(source_key)
- if raw is None:
-  pure=rates.get(f'{metal} 999')
-  raw=(pure*purity/999) if pure is not None else None
- if raw is None: return {'metal':metal,'weightGrams':weight,'purity':purity,'purityBasis':basis,'status':'rate_missing'}
- per_gram=raw/(1000 if metal=='Silver' else 10)
- metal_value=per_gram*weight
- listed=p.get('sale') if p.get('sale') is not None else p.get('regular')
- estimate={'metal':metal,'weightGrams':round(weight,3),'purity':purity,'purityBasis':basis,'ratePerGram':round(per_gram,2),
-           'metalValue':round(metal_value,2),'status':'estimated'}
- if listed is not None:
-  pretax=listed/1.03
-  estimate.update({'listedPrice':listed,'estimatedGstIncluded':round(listed-pretax,2),
-                   'nonMetalPremiumPreTax':round(pretax-metal_value,2),'metalSharePct':round(100*metal_value/listed,1) if listed else None})
- return estimate
+from metal_valuation import metal_estimate
 
 with (DATA/'current-products.csv').open(encoding='utf-8-sig',newline='') as f:
  rows=[r for r in csv.DictReader(f) if r.get('catalog_status','active')=='active']
