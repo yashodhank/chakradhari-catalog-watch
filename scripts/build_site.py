@@ -89,8 +89,16 @@ summary={'total':len(products),'inStock':ins,'outOfStock':outs,'unknown':len(pro
          'productPagesEnriched':sum(bool(p['name']) for p in products),'onSale':sum(p['sale'] is not None for p in products),
          'medianPrice':statistics.median(prices) if prices else None,'minPrice':min(prices) if prices else None,
          'maxPrice':max(prices) if prices else None,'eventCount':len(events)}
-payload={'generatedAt':datetime.now(timezone.utc).isoformat(),'summary':summary,'recentEvents':events[:80],
-         'metalRates':metal_data.get('latest',{}),'products':products}
 DOCS.mkdir(exist_ok=True)
-(DOCS/'products.json').write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),'utf-8')
-print(f"Built docs/products.json with {len(products)} active products")
+for stale in DOCS.glob('products-*.json'):
+ stale.unlink()
+chunk_size=300
+chunk_files=[]
+for i in range(0,len(products),chunk_size):
+ name=f'products-{i//chunk_size:02d}.json'
+ chunk_files.append(name)
+ (DOCS/name).write_text(json.dumps(products[i:i+chunk_size],ensure_ascii=False,separators=(',',':')),'utf-8')
+payload={'generatedAt':datetime.now(timezone.utc).isoformat(),'summary':summary,'recentEvents':events[:80],
+         'metalRates':metal_data.get('latest',{}),'productChunks':chunk_files}
+(DOCS/'products-manifest.json').write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),'utf-8')
+print(f"Built {len(chunk_files)} product chunks with {len(products)} active products")

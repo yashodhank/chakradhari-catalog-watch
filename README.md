@@ -4,10 +4,10 @@ An independent, public monitor for the product catalog at [chakradhari.com](http
 
 ## Public data
 
-- `data/current-products.csv` — latest known state for every monitored product
-- `data/price-history.csv` — append-only price observations
+- `data/current-products.csv.gz` — compressed latest known state for every monitored product
+- `data/price-history.csv.gz.part-*` — compressed, split append-only price observations
 - `data/change-events.csv` — append-only meaningful changes
-- `data/sources.json` — source registry and source-status history
+- `data/sources.json.gz` — compressed source registry and source-status history
 - `data/run-log.md` — scan coverage and reliability log
 - `data/metal-rates.json` — dated IBJA gold, silver and platinum benchmark observations
 
@@ -20,6 +20,9 @@ GitHub Actions scans the public catalog each day at approximately 08:00 IST, reb
 Run locally with Python 3.12+ and no third-party packages:
 
 ```bash
+gunzip -c data/current-products.csv.gz > data/current-products.csv
+cat data/price-history.csv.gz.part-* | gunzip -c > data/price-history.csv
+gunzip -c data/sources.json.gz > data/sources.json
 python scripts/update_catalog.py
 python scripts/update_metal_rates.py
 python scripts/build_site.py

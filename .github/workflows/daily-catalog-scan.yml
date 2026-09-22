@@ -17,16 +17,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Scan public catalog
-        run: python scripts/update_catalog.py
+        run: |
+          gunzip -c data/current-products.csv.gz > data/current-products.csv
+          cat data/price-history.csv.gz.part-* | gunzip -c > data/price-history.csv
+          gunzip -c data/sources.json.gz > data/sources.json
+          python scripts/update_catalog.py
       - name: Refresh Indian bullion benchmark rates
         run: python scripts/update_metal_rates.py
       - name: Rebuild public dashboard data
-        run: python scripts/build_site.py
+        run: |
+          python scripts/build_site.py
+          gzip -9 -c data/current-products.csv > data/current-products.csv.gz
+          gzip -9 -c data/sources.json > data/sources.json.gz
+          gzip -9 -c data/price-history.csv > data/price-history.csv.gz
+          rm -f data/price-history.csv.gz.part-*
+          split -b 450000 -d -a 3 data/price-history.csv.gz data/price-history.csv.gz.part-
+          rm data/current-products.csv data/price-history.csv data/sources.json data/price-history.csv.gz
       - name: Commit changed observations
         run: |
           git config user.name "github-actions[bot]"
