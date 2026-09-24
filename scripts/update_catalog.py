@@ -171,8 +171,8 @@ def run_scan():
      key=(hu,hc); history_reference[key]=max(hp,history_reference.get(key,0))
  suspicious_localized=set()
  for u in product_urls:
-  r=byurl.get(u,{}); cpv=money(r.get('sale_price_normalized')) or money(r.get('regular_price_normalized')); cc=text(r.get('currency_normalized')).upper(); ref=history_reference.get((u,cc),0)
-  if cpv and ref and 20<=ref/cpv<=100: suspicious_localized.add(u)
+  r=byurl.get(u,{}); sale_now=money(r.get('sale_price_normalized')); cpv=money(r.get('regular_price_normalized')); cc=text(r.get('currency_normalized')).upper(); ref=history_reference.get((u,cc),0)
+  if not sale_now and cpv and ref and 5<=ref/cpv<=100: suspicious_localized.add(u)
  tofetch=set(newurls | suspicious_localized | {u for u in product_urls if not previous_run or lastmods.get(u,'')>=previous_run})
  # Rotate older records that need image, gender or price-state validation, even when
  # the merchant's sitemap lastmod has not changed. Bound added traffic per scan.
@@ -209,6 +209,7 @@ def run_scan():
     op=money(orow.get('sale_price_normalized')) or money(orow.get('regular_price_normalized')); np=money(nr.get('sale_price_normalized')) or money(nr.get('regular_price_normalized'))
     old_currency=text(orow.get('currency_normalized')).upper(); new_currency=text(nr.get('currency_normalized')).upper()
     currency_mismatch=bool(op and np is not None and old_currency and new_currency and old_currency!=new_currency)
+    old_sale=money(orow.get('sale_price_normalized')); new_sale=money(nr.get('sale_price_normalized'))
     reference=history_reference.get((u,new_currency),0)
     repairing_localization=u in suspicious_localized and reference and np is not None and 0.5<=np/reference<=2
     if currency_mismatch and nr.get('price_status_observed')=='listed':
@@ -217,6 +218,10 @@ def run_scan():
      nr['content_hash']=hashrow(nr); nr['last_changed']=NOW if nr['content_hash']!=orow.get('content_hash') else orow.get('last_changed',NOW)
     elif repairing_localization:
      localization_repair_count+=1
+    elif old_sale is None and new_sale is not None:
+     ev('sale_started',nr,orow.get('regular_price_observed'),nr.get('sale_price_observed'),op,np,round((np-op)*100/op,2) if op else '')
+    elif old_sale is not None and new_sale is None:
+     ev('sale_ended',nr,orow.get('sale_price_observed'),nr.get('regular_price_observed'),op,np,round((np-op)*100/op,2) if op else '')
     elif op and np is not None and op!=np: ev('price_increase' if np>op else 'price_decrease',nr,orow.get('sale_price_observed') or orow.get('regular_price_observed'),nr.get('sale_price_observed') or nr.get('regular_price_observed'),op,np,round((np-op)*100/op,2))
    else: ev('added',nr,newv=nr.get('name_observed'),note='New canonical URL in complete product sitemap')
    byurl[u]=nr
