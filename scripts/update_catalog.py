@@ -158,7 +158,22 @@ def run_scan():
   previous_run=json.loads((DATA/'sources.json').read_text('utf-8')).get('updated_at','')[:10]
  except Exception:
   pass
- tofetch=set(newurls | {u for u in product_urls if not previous_run or lastmods.get(u,'')>=previous_run})
+ # Detect conversion-shaped anomalies against prior same-currency observations.
+ # This rechecks corrupted localized prices without declaring a price movement.
+ history_reference={}
+ ph_path=DATA/'price-history.csv'
+ if ph_path.exists():
+  with ph_path.open(encoding='utf-8-sig',newline='') as f:
+   for hr in csv.DictReader(f):
+    hu=norm(hr.get('canonical_url','')); hp=money(hr.get('sale_price_normalized')) or money(hr.get('regular_price_normalized'))
+    hc=text(hr.get('currency_normalized')).upper()
+    if hu and hp and hc:
+     key=(hu,hc); history_reference[key]=max(hp,history_reference.get(key,0))
+ suspicious_localized=set()
+ for u in product_urls:
+  r=byurl.get(u,{}); cpv=money(r.get('sale_price_normalized')) or money(r.get('regular_price_normalized')); cc=text(r.get('currency_normalized')).upper(); ref=history_reference.get((u,cc),0)
+  if cpv and ref and 20<=ref/cpv<=100: suspicious_localized.add(u)
+ tofetch=set(newurls | suspicious_localized | {u for u in product_urls if not previous_run or lastmods.get(u,'')>=previous_run})
  # Rotate older records that need image, gender or price-state validation, even when
  # the merchant's sitemap lastmod has not changed. Bound added traffic per scan.
  needs=[u for u in product_urls if u in byurl and u not in tofetch and (not valid_image(byurl[u].get('primary_image_url',''),u) or not byurl[u].get('gender_observed') or not byurl[u].get('price_status_observed'))]
@@ -175,6 +190,7 @@ def run_scan():
 
  events=[]
  currency_mismatch_count=0
+ localization_repair_count=0
  event_fields=['event_at','event_type','monitor_id','observed_product_id','observed_variant_id','name_observed','canonical_url','old_value_observed','new_value_observed','old_value_normalized','new_value_normalized','percentage_change','evidence_url','run_id','notes']
  def ev(t,r,oldv='',newv='',oldn='',newn='',pct='',note=''):
   events.append({'event_at':NOW,'event_type':t,'monitor_id':r.get('monitor_id',''),'observed_product_id':r.get('observed_product_id',''),'observed_variant_id':r.get('observed_variant_id',''),'name_observed':r.get('name_observed',''),'canonical_url':r.get('canonical_url',''),'old_value_observed':oldv,'new_value_observed':newv,'old_value_normalized':oldn,'new_value_normalized':newn,'percentage_change':pct,'evidence_url':r.get('canonical_url',''),'run_id':RUN_ID,'notes':note})
@@ -193,10 +209,14 @@ def run_scan():
     op=money(orow.get('sale_price_normalized')) or money(orow.get('regular_price_normalized')); np=money(nr.get('sale_price_normalized')) or money(nr.get('regular_price_normalized'))
     old_currency=text(orow.get('currency_normalized')).upper(); new_currency=text(nr.get('currency_normalized')).upper()
     currency_mismatch=bool(op and np is not None and old_currency and new_currency and old_currency!=new_currency)
+    reference=history_reference.get((u,new_currency),0)
+    repairing_localization=u in suspicious_localized and reference and np is not None and 0.5<=np/reference<=2
     if currency_mismatch and nr.get('price_status_observed')=='listed':
      currency_mismatch_count+=1
      for k in ('regular_price_observed','regular_price_normalized','sale_price_observed','sale_price_normalized','currency_observed','currency_normalized','discount_observed','discount_pct_normalized'): nr[k]=orow.get(k,'')
      nr['content_hash']=hashrow(nr); nr['last_changed']=NOW if nr['content_hash']!=orow.get('content_hash') else orow.get('last_changed',NOW)
+    elif repairing_localization:
+     localization_repair_count+=1
     elif op and np is not None and op!=np: ev('price_increase' if np>op else 'price_decrease',nr,orow.get('sale_price_observed') or orow.get('regular_price_observed'),nr.get('sale_price_observed') or nr.get('regular_price_observed'),op,np,round((np-op)*100/op,2))
    else: ev('added',nr,newv=nr.get('name_observed'),note='New canonical URL in complete product sitemap')
    byurl[u]=nr
@@ -261,8 +281,8 @@ def run_scan():
  counts={t:sum(e['event_type']==t for e in events) for t in set(e['event_type'] for e in events)}
  partial=len(success)<len(tofetch)
  with (DATA/'run-log.md').open('a',encoding='utf-8') as f:
-  f.write(f'\n## {NOW}\n\n- Run ID: {RUN_ID}\n- Result: '+('Partial detail refresh; complete product-sitemap catalog boundary.' if partial else 'Successful complete sitemap comparison with targeted detail refresh.')+f'\n- Product sitemap URLs: {len(product_urls):,}\n- Active products: {len(active):,}\n- In stock: {ins:,}\n- Out of stock: {outs:,}\n- Added: {counts.get("added",0)}; suspected removals: {counts.get("missing_after_one_scan",0)}; confirmed removals: {counts.get("removed_after_two_consecutive_successful_full_scans",0)}; restocks: {counts.get("restocked",0)}; price changes: {counts.get("price_increase",0)+counts.get("price_decrease",0)}.\n- Detail pages attempted/succeeded: {len(tofetch)}/{len(success)}\n- Access errors: {len(errors)}\n- Currency detected: INR\n- Currency-mismatched localized prices ignored: {currency_mismatch_count}\n- Evidence: {prod_sm}\n')
- print(json.dumps({'run_id':RUN_ID,'active':len(active),'in_stock':ins,'out_of_stock':outs,'product_sitemap_urls':len(product_urls),'new':counts.get('added',0),'suspected_removed':counts.get('missing_after_one_scan',0),'confirmed_removed':counts.get('removed_after_two_consecutive_successful_full_scans',0),'restocked':counts.get('restocked',0),'price_increase':counts.get('price_increase',0),'price_decrease':counts.get('price_decrease',0),'currency_mismatch_ignored':currency_mismatch_count,'detail_attempted':len(tofetch),'detail_success':len(success),'errors':errors,'events':[e for e in events if e['event_type'] in ('price_increase','price_decrease','restocked','out_of_stock')]}))
+  f.write(f'\n## {NOW}\n\n- Run ID: {RUN_ID}\n- Result: '+('Partial detail refresh; complete product-sitemap catalog boundary.' if partial else 'Successful complete sitemap comparison with targeted detail refresh.')+f'\n- Product sitemap URLs: {len(product_urls):,}\n- Active products: {len(active):,}\n- In stock: {ins:,}\n- Out of stock: {outs:,}\n- Added: {counts.get("added",0)}; suspected removals: {counts.get("missing_after_one_scan",0)}; confirmed removals: {counts.get("removed_after_two_consecutive_successful_full_scans",0)}; restocks: {counts.get("restocked",0)}; price changes: {counts.get("price_increase",0)+counts.get("price_decrease",0)}.\n- Detail pages attempted/succeeded: {len(tofetch)}/{len(success)}\n- Access errors: {len(errors)}\n- Currency detected: INR\n- Currency-mismatched localized prices ignored: {currency_mismatch_count}\n- Localized price observations repaired from compatible structured data: {localization_repair_count}\n- Evidence: {prod_sm}\n')
+ print(json.dumps({'run_id':RUN_ID,'active':len(active),'in_stock':ins,'out_of_stock':outs,'product_sitemap_urls':len(product_urls),'new':counts.get('added',0),'suspected_removed':counts.get('missing_after_one_scan',0),'confirmed_removed':counts.get('removed_after_two_consecutive_successful_full_scans',0),'restocked':counts.get('restocked',0),'price_increase':counts.get('price_increase',0),'price_decrease':counts.get('price_decrease',0),'currency_mismatch_ignored':currency_mismatch_count,'localized_price_repairs':localization_repair_count,'detail_attempted':len(tofetch),'detail_success':len(success),'errors':errors,'events':[e for e in events if e['event_type'] in ('price_increase','price_decrease','restocked','out_of_stock')]}))
 
 if __name__ == "__main__":
  run_scan()
