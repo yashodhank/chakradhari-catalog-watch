@@ -1,8 +1,8 @@
 {
   "latest": {
-    "date": "2026-09-22",
+    "date": "2026-09-23",
     "session": "PM",
-    "observed_at": "2026-09-23T07:52:44.499252+00:00",
+    "observed_at": "2026-09-24T03:15:20.476074+00:00",
     "source": "https://www.ibjarates.com/",
     "units": {
       "gold": "INR per 10 g",
@@ -11,13 +11,13 @@
     },
     "gst_included": false,
     "rates": {
-      "Gold 999": 152136,
-      "Gold 995": 151527,
-      "Gold 916": 139357,
-      "Gold 750": 114102,
-      "Gold 585": 89000,
-      "Silver 999": 232922,
-      "Platinum 999": 63261
+      "Gold 999": 152016,
+      "Gold 995": 151407,
+      "Gold 916": 139247,
+      "Gold 750": 114012,
+      "Gold 585": 88929,
+      "Silver 999": 232766,
+      "Platinum 999": 60636
     }
   },
   "history": [
@@ -61,6 +61,27 @@
         "Gold 585": 89000,
         "Silver 999": 232922,
         "Platinum 999": 63261
+      }
+    },
+    {
+      "date": "2026-09-23",
+      "session": "PM",
+      "observed_at": "2026-09-24T03:15:20.476074+00:00",
+      "source": "https://www.ibjarates.com/",
+      "units": {
+        "gold": "INR per 10 g",
+        "silver": "INR per kg",
+        "platinum": "INR per 10 g"
+      },
+      "gst_included": false,
+      "rates": {
+        "Gold 999": 152016,
+        "Gold 995": 151407,
+        "Gold 916": 139247,
+        "Gold 750": 114012,
+        "Gold 585": 88929,
+        "Silver 999": 232766,
+        "Platinum 999": 60636
       }
     }
   ]
