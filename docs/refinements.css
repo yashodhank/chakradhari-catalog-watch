@@ -5,3 +5,14 @@
 /* Keep large INR ranges legible in the overview at every viewport width. */
 .cards .card{min-width:0}.cards .value{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.cards #priceRange{font-size:clamp(1.05rem,1.6vw,1.7rem);line-height:1.25;letter-spacing:-.035em;display:block;hyphens:none}
 @media(max-width:760px){.cards #priceRange{font-size:clamp(1rem,4vw,1.35rem)}.cards .card{padding:14px}.cards .card .sub{line-height:1.35}}
+
+/* Collection navigation and readable material references. */
+.collection-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:18px}
+.collection-grid a{display:flex;flex-direction:column;gap:5px;padding:18px;min-height:90px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);text-decoration:none}
+.collection-grid a:hover,.collection-grid a:focus-visible{border-color:var(--green);background:#f1f7f3}
+.collection-grid a strong{font-size:1rem}.collection-grid a span{font-size:.8rem;color:var(--muted)}
+.rate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:8px 0 14px}
+.rate-item{border:1px solid var(--line);border-radius:7px;background:#fff;padding:12px;overflow-wrap:anywhere}
+.rate-item small{display:block;color:var(--muted);line-height:1.4}.rate-item strong{font-size:.9rem}
+@media(max-width:1000px){.collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.collection-grid{grid-template-columns:1fr}.side .nav{display:flex;flex-wrap:wrap}.side .nav a{white-space:nowrap}}
