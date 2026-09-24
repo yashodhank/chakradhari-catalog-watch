@@ -14,7 +14,7 @@ An independent, searchable view of [Chakradhari's public product catalog](https:
 - **Find products quickly:** Search names, category, material, size and common metal names in English, Hindi or transliteration. Combine search with stock, gender, metal, price and data-availability filters; share filtered results by URL.
 - **Check price and availability:** See observed INR prices, sale indicators, explicit stock states and direct links to the merchant. Products marked **Contact seller for price** never display an older numeric price as a current offer.
 - **Review catalog changes:** Follow additions, confirmed removals, stock transitions and price or sale changes, with a link to the relevant product. A removal requires two consecutive successful complete sitemap scans.
-- **Assess metal content cautiously:** Where the seller states a usable metal weight and purity and a dated benchmark is available, see a raw-metal estimate. The retail remainder is unexplained retail cost; it is not a quoted making charge or tax amount.
+- **Assess metal content cautiously:** Where the seller states a usable net metal weight and purity and a dated reference is available, see the estimated raw-metal amount next to the asking price and their difference. Monthly international base-metal references are labeled separately from daily Indian bullion rates. The retail remainder is unexplained retail cost; it is not a quoted making charge or tax amount.
 - **Inspect evidence:** Check first and last catalog sightings, detail-page verification, seller material and size claims, image availability and source coverage. Download a filtered JSON selection.
 
 **Dashboard:** https://yashodhank.github.io/chakradhari-catalog-watch/  
@@ -32,6 +32,8 @@ An independent, searchable view of [Chakradhari's public product catalog](https:
 | [Run log](data/run-log.md) | Sitemap coverage, detail-page success and errors |
 | [Metal rates](data/metal-rates.json) | Dated bullion benchmark observations |
 | [Dashboard manifest](docs/products-manifest.json) | Summary, recent events and product chunk references for the public UI |
+
+See the [material coverage and rate-source research queue](docs/RATE-SOURCES-TODO.md) for metals, gemstones, Rudraksha and unresolved sources.
 
 The dashboard's [JSON manifest](docs/products-manifest.json) and linked product chunks are convenient for scripts and AI assistants. See the [data guide](docs/data-guide.md) for field meanings and limitations.
 
