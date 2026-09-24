@@ -1,45 +1,62 @@
-# Chakradhari Catalog Watch
+# Chakradhari Catalog Watch — searchable product catalog, prices and stock
 
-An independent, public monitor for the product catalog at [chakradhari.com](https://www.chakradhari.com/). It records additions, removals, stock changes and price history, and publishes a searchable static dashboard.
+[![Open public dashboard](https://img.shields.io/badge/Open-public%20dashboard-176b52?style=for-the-badge)](https://yashodhank.github.io/chakradhari-catalog-watch/)
+[![Daily catalog scan](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/daily-catalog-scan.yml/badge.svg)](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/daily-catalog-scan.yml)
+[![GitHub Pages deployment](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/pages.yml/badge.svg)](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/pages.yml)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Public data
+**[Explore the free public catalog dashboard →](https://yashodhank.github.io/chakradhari-catalog-watch/)**
 
-- `data/current-products.csv.gz` — compressed latest known state for every monitored product
-- `data/price-history.csv.gz.part-*` — compressed, split append-only price observations
-- `data/change-events.csv` — append-only meaningful changes
-- `data/sources.json.gz` — compressed source registry and source-status history
-- `data/run-log.md` — scan coverage and reliability log
-- `data/metal-rates.json` — dated IBJA gold, silver and platinum benchmark observations
+An independent, searchable view of [Chakradhari's public product catalog](https://www.chakradhari.com/). Browse jewelry, gemstones, metals and other listed products; filter by category, stock, material, gender claim and price; inspect product images, seller claims and observed changes. The dashboard is a static site hosted on GitHub Pages, so visitors need no account.
 
-Price history records actual detail-page fetches on new scans; old history may contain prices carried forward from cached rows and must not be treated as independently observed daily prices. A product is confirmed removed only after two consecutive successful complete sitemap comparisons.
+## What you can do
 
-## Automation
+- **Find products quickly:** Search names, category, material, size and common metal names in English, Hindi or transliteration. Combine search with stock, gender, metal, price and data-availability filters; share filtered results by URL.
+- **Check price and availability:** See observed INR prices, sale indicators, explicit stock states and direct links to the merchant. Products marked **Contact seller for price** never display an older numeric price as a current offer.
+- **Review catalog changes:** Follow additions, confirmed removals, stock transitions and price or sale changes, with a link to the relevant product. A removal requires two consecutive successful complete sitemap scans.
+- **Assess metal content cautiously:** Where the seller states a usable metal weight and purity and a dated benchmark is available, see a raw-metal estimate. The retail remainder is unexplained retail cost; it is not a quoted making charge or tax amount.
+- **Inspect evidence:** Check first and last catalog sightings, detail-page verification, seller material and size claims, image availability and source coverage. Download a filtered JSON selection.
 
-GitHub Actions scans the public catalog each day at approximately 08:00 IST, rebuilds the dashboard dataset and commits new observations. A manual run is also available from the Actions tab.
+**Dashboard:** https://yashodhank.github.io/chakradhari-catalog-watch/  
+**Source catalog:** https://www.chakradhari.com/  
+**Field definitions and freshness:** [Data guide](docs/data-guide.md)
 
-Run locally with Python 3.12+ and no third-party packages:
+## Public datasets
+
+| File | Contents |
+| --- | --- |
+| [Current products](data/current-products.csv.gz) | Latest known product state, including canonical URL, price, stock, material and image evidence |
+| [Price history](data/) | Append-only observations split into `price-history.csv.gz.part-*` archives |
+| [Change events](data/change-events.csv) | Meaningful additions, removals, stock and price events |
+| [Sources](data/sources.json.gz) | Source registry with status and historical observations |
+| [Run log](data/run-log.md) | Sitemap coverage, detail-page success and errors |
+| [Metal rates](data/metal-rates.json) | Dated bullion benchmark observations |
+| [Dashboard manifest](docs/products-manifest.json) | Summary, recent events and product chunk references for the public UI |
+
+The dashboard's [JSON manifest](docs/products-manifest.json) and linked product chunks are convenient for scripts and AI assistants. See the [data guide](docs/data-guide.md) for field meanings and limitations.
+
+## How updates work
+
+GitHub Actions scans the public sitemap and selected product pages daily at approximately **08:00 IST**. It preserves source and change history, refreshes metal benchmarks, builds the static dashboard and deploys it to GitHub Pages. Check the [scan workflow](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/daily-catalog-scan.yml) and [deployment workflow](https://github.com/yashodhank/chakradhari-catalog-watch/actions/workflows/pages.yml) for current status. A manual scan can be started from GitHub Actions.
+
+To run a local scan with Python 3.12 or newer (no third-party packages):
 
 ```bash
 gunzip -c data/current-products.csv.gz > data/current-products.csv
 cat data/price-history.csv.gz.part-* | gunzip -c > data/price-history.csv
 gunzip -c data/sources.json.gz > data/sources.json
+python -m unittest discover -s tests -v
 python scripts/update_catalog.py
 python scripts/update_metal_rates.py
 python scripts/build_site.py
 ```
 
-### Metal-value estimates
+Open `docs/index.html` through a local static HTTP server to explore the generated site.
 
-When a product exposes an unambiguous metal, net metal weight, seller-stated purity and a sourced rate, the dashboard estimates a raw-metal benchmark value. Ambiguous alloys, plating, composite weights and missing purity show an explicit reason instead. The difference between listed retail and benchmark may include taxes, workmanship, design, stones, packaging and margin; it is not a making-charge or GST determination. Additional metals are recognized but do not get invented benchmark rates.
+## Interpretation and limits
 
-## Product metadata
+This monitor records **publicly observed claims**, not independently verified product properties. A catalog sighting does not prove that a price or stock state was rechecked that day; inspect the detail verification timestamp and the linked merchant page before purchasing. Some merchant pages are inaccessible, and variant coverage is incomplete. Those records remain visible with an unknown state or a neutral image fallback instead of an invented price or thumbnail.
 
-The dashboard shows merchant gender choices as Male, Female, Unisex (both choices), or Not stated. A gender claim is descriptive metadata, not a recommendation. Missing images use same-product candidates when available, then a neutral fallback. When the merchant shows “Contact us for price,” the catalog withholds older structured prices and offers a link to the merchant page. The `data-guide.md` explains each public JSON field and its freshness limits.
+Gender filters describe the merchant's available choices. “Unisex” can mean that both male and female options are offered; it does not establish a single universal size. Metal estimates need a clear weight and purity claim and a sourced rate. Composite products, plating, unknown alloy composition and missing weights do not receive a fabricated metal valuation.
 
-## Accuracy and affiliation
-
-This is an independent observational project and is not affiliated with or endorsed by Chakradhari. Availability and prices can change between scans; verify important information on the linked product page. The monitor reads public pages and structured data only.
-
-## License
-
-Code is MIT licensed. Product names, imagery and other catalog content remain the property of their respective owners.
+This project is **independent** and is not affiliated with or endorsed by Chakradhari. The code is [MIT licensed](LICENSE); merchant names, product descriptions and images belong to their respective owners.
