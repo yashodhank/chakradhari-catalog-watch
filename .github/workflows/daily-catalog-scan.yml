@@ -7,7 +7,8 @@ on:
       - "scripts/update_catalog.py"
       - "scripts/build_site.py"
       - "scripts/metal_valuation.py"
-      - "tests/test_product_extraction.py"
+      - "scripts/update_reference_rates.py"
+      - "tests/**"
   schedule:
     - cron: "30 2 * * *" # 08:00 IST
   workflow_dispatch:
@@ -40,6 +41,8 @@ jobs:
           python scripts/update_catalog.py
       - name: Refresh Indian bullion benchmark rates
         run: python scripts/update_metal_rates.py
+      - name: Refresh monthly base-metal references
+        run: python scripts/update_reference_rates.py
       - name: Rebuild public dashboard data
         run: |
           python scripts/build_site.py
