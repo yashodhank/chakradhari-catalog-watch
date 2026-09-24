@@ -14,7 +14,7 @@ Start with `products-manifest.json`. Its `productChunks` array lists relative JS
 - `material`, `weightSize`, `subtitle`: merchant text, not independent verification. Capacity is not mass. Gross weight is not net metal content.
 - `firstSeen`, `lastSeen`: catalog sightings, not launch dates or guaranteed detail/price observation times.
 - `image`: source URL; placeholders and failed images may exist. Never infer a variant's appearance from another variant.
-- `unitPrice`: seller asking price divided by one unambiguous stone carat weight when available. It is not a gem benchmark or a material cost estimate.
+- `unitPrice`: listed product total divided by one unambiguous seller-stated stone carat weight when available. The listed total may include a setting; this is not a gem benchmark or a stone-only price.
 - `metalRates.otherRates`: monthly World Bank bulk metal observations converted with a dated ECB FX reference. A daily FX observation does not turn the monthly metal price into a daily quote. Product estimates still require net metal weight and purity.
 - `rating`, `reviews`: observed fields; missing is not zero. Rating scale is not independently verified.
 - `metalEstimate`: conservative inference from seller claims. `status=estimated` requires sufficient inputs. Other statuses explain missing or ambiguous evidence. A retail residual includes unknown tax, workmanship, other materials and margin; it is not a making-charge quote.
