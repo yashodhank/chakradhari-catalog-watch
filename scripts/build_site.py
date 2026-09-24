@@ -52,6 +52,16 @@ for r in rows:
  p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}))
  products.append(p)
 
+product_by_url={p['url']:p for p in products}
+historical_sales=set()
+try:
+ with (DATA/'price-history.csv').open(encoding='utf-8-sig',newline='') as f:
+  for h in csv.DictReader(f):
+   sale=number(h.get('sale_price_normalized'),True)
+   if sale is not None: historical_sales.add((h.get('canonical_url',''),round(sale,2)))
+except FileNotFoundError:
+ pass
+
 ins=sum(p['availability']=='in_stock' for p in products)
 outs=sum(p['availability']=='out_of_stock' for p in products)
 prices=[p['sale'] if p['sale'] is not None else p['regular'] for p in products]
@@ -63,6 +73,10 @@ try:
  for e in reversed(raw_events):
   et=e.get('event_type')
   pct=number(e.get('percentage_change'))
+  oldn=number(e.get('old_value_normalized'),True)
+  current=product_by_url.get(e.get('canonical_url',''))
+  if et=='price_increase' and oldn is not None and current and current.get('sale') is None and (e.get('canonical_url',''),round(oldn,2)) in historical_sales:
+   et='sale_ended'
   # Retain anomalous rows in the audit CSV, but do not surface known
   # conversion-shaped localization artifacts as customer-facing changes.
   if et=='price_decrease' and pct is not None and -99.5<=pct<=-90 and not e.get('notes'):
