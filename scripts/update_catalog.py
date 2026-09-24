@@ -38,12 +38,15 @@ def image_candidates(pdata,main,ld,html,url):
  def add(item):
   if isinstance(item,(list,tuple)):
    for v in item: add(v)
-  elif isinstance(item,dict): add(item.get('url') or item.get('src') or item.get('image'))
+  elif isinstance(item,dict):
+   for k in ('url','src','image','original','large','medium','small','thumb_image','big_image'): add(item.get(k))
   else:
    u=valid_image(item,url)
    if u and u not in candidates: candidates.append(u)
+ for variant in pdata.get('variants') or []:
+  for k in ('thumb_image','mini_image','big_image','featured_image_url','image_url','image','images','gallery_images','product_images'): add(variant.get(k))
  for k in ('thumb_image','mini_image','big_image'): add(main.get(k))
- add(pdata.get('featured_image_url'))
+ for k in ('featured_image_url','images','gallery_images','product_images','product_gallery','media'): add(pdata.get(k))
  add(ld.get('image'))
  for m in re.finditer(r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*>',html,re.I):
   a=re.search(r'content=["\']([^"\']+)',m.group(0),re.I)
@@ -115,7 +118,8 @@ def product_page(u):
   desc=' '.join([text(ld.get('name')),text(ld.get('description')),text(pdata.get('product_name'))])
   mats=', '.join(x for x in ['Gold','Silver','Copper','Brass','Bronze','Kansa','Iron','Parad','Rudraksha','Sandalwood','Quartz','Gemstone'] if re.search(r'\b'+x+r'\b',desc,re.I))
   ws='; '.join(dict.fromkeys(re.findall(r'\b\d+(?:\.\d+)?\s*(?:kg|gms?|grams?|gm|ml|litres?|liters?|lt|mm|cm|inch(?:es)?|carats?|ct)\b',desc,re.I)))[:500]
-  name=text(pdata.get('product_name') or ld.get('name'))
+  name=text(pdata.get('product_name') or ld.get('name')).strip('"“”')
+  name=re.split(r",\s*If it(?:'|’|&#39;)s specifically\b",name,maxsplit=1,flags=re.I)[0].rstrip(' ,:-')
   images=image_candidates(pdata,main,ld,h,u)
   currency=text(offers.get('priceCurrency') or pdata.get('currency') or 'INR').upper()
   currency_mark={'INR':'₹','USD':'US $','EUR':'€','GBP':'£'}.get(currency,currency)
@@ -178,7 +182,7 @@ def run_scan():
  # the merchant's sitemap lastmod has not changed. Bound added traffic per scan.
  needs=[u for u in product_urls if u in byurl and u not in tofetch and (not valid_image(byurl[u].get('primary_image_url',''),u) or not byurl[u].get('gender_observed') or not byurl[u].get('price_status_observed'))]
  needs.sort(key=lambda u:(byurl[u].get('detail_last_checked') or byurl[u].get('last_changed') or '',u))
- tofetch=sorted(tofetch|set(needs[:80]))
+ tofetch=sorted(tofetch|set(needs[:1000]))
  results=[]
  with ThreadPoolExecutor(max_workers=20) as ex:
   futs=[ex.submit(product_page,u) for u in tofetch]
