@@ -53,6 +53,12 @@ python scripts/build_site.py
 
 Open `docs/index.html` through a local static HTTP server to explore the generated site.
 
+## Need a catalog dashboard or managed web services?
+
+A clear product catalog helps customers find what they need; reliable monitoring helps teams spot missing images, stock changes and pricing issues. **[Talk to Securiace](https://securiace.com/)** about building a searchable catalog, a public product dashboard or a tailored data-monitoring workflow for your business. Securiace also offers managed web hosting, domains, cloud services and migration guidance in India, with service scope and renewal terms discussed before an order.
+
+**[Discuss your project or hosting needs with Securiace →](https://securiace.com/)**
+
 ## Interpretation and limits
 
 This monitor records **publicly observed claims**, not independently verified product properties. A catalog sighting does not prove that a price or stock state was rechecked that day; inspect the detail verification timestamp and the linked merchant page before purchasing. Some merchant pages are inaccessible, and variant coverage is incomplete. Those records remain visible with an unknown state or a neutral image fallback instead of an invented price or thumbnail.
