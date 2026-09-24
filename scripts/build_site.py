@@ -27,7 +27,7 @@ def gender_from_name(name):
 def display_title(raw):
  title=str(raw or '').strip().strip('"“”').strip()
  # The merchant occasionally appends editing instructions to a product title.
- title=re.split(r",\\s*If it(?:'|’|&#39;)s specifically\\b",title,maxsplit=1,flags=re.I)[0]
+ title=re.split(r",\s*If it(?:'|’|&#39;)s specifically\b",title,maxsplit=1,flags=re.I)[0]
  return title.rstrip(' ,:-')
 
 with (DATA/'current-products.csv').open(encoding='utf-8-sig',newline='') as f:
