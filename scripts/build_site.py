@@ -24,6 +24,12 @@ def gender_from_name(name):
  if male: return 'Male'
  return '-'
 
+def display_title(raw):
+ title=str(raw or '').strip().strip('"“”').strip()
+ # The merchant occasionally appends editing instructions to a product title.
+ title=re.split(r",\\s*If it(?:'|’|&#39;)s specifically\\b",title,maxsplit=1,flags=re.I)[0]
+ return title.rstrip(' ,:-')
+
 with (DATA/'current-products.csv').open(encoding='utf-8-sig',newline='') as f:
  rows=[r for r in csv.DictReader(f) if r.get('catalog_status','active')=='active']
 metal_data={'latest':{'rates':{}}}
@@ -33,7 +39,7 @@ except Exception: pass
 products=[]
 for r in rows:
  p={
-  'id':r.get('monitor_id',''), 'name':r.get('name_observed',''),
+  'id':r.get('monitor_id',''), 'name':display_title(r.get('name_observed','')),
   'url':r.get('canonical_url',''), 'category':r.get('breadcrumb_category_observed',''),
   'categories':r.get('all_categories_observed',''), 'availability':r.get('availability_normalized','unknown'),
   'regular':number(r.get('regular_price_normalized'),True), 'sale':number(r.get('sale_price_normalized'),True),
