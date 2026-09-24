@@ -4,6 +4,13 @@
   const $ = s => document.querySelector(s);
   const aliases = {tamba:'copper',tamra:'copper','तांबा':'copper',chandi:'silver','चांदी':'silver',sona:'gold',pital:'brass',peetal:'brass',kansa:'bronze',ranga:'tin',parad:'mercury',aluminum:'aluminium'};
   const normalize = value => String(value || '').normalize('NFKC').toLowerCase().replace(/[\u2010-\u2015_-]/g,' ').replace(/\s+/g,' ').trim().split(' ').map(t => aliases[t] || t).join(' ');
+  const groupOf = p => {
+    const category=normalize(p.category+' '+p.categories), title=normalize(p.name+' '+p.material);
+    if (/rudraksha|रुद्राक्ष/.test(category+' '+title)) return 'rudraksha';
+    if (/gemstone|diamond|sapphire|emerald|ruby|amethyst|ametrine|opal|citrine|quartz|turquoise|garnet|lapis|moon ?stone|zircon|peridot|iolite|fluorite|coral|tourmaline|topaz|pyrite|chrysoberyl|heliodor|tiger eye|sunstone/.test(category+' '+title)) return 'gemstones';
+    if (/gold|silver|platinum|copper|brass|bronze|kansa|tin|ranga|zinc|iron|steel|parad|mercury|aluminium|lead|nickel/.test(category+' '+title)) return 'metals';
+    return '';
+  };
   const originalSearch = searchable;
   searchable = p => normalize(originalSearch(p));
   const safeImage = p => /^https?:\/\//.test(p.image || '') && !/\/img\/x\.gif(?:\?|$)/.test(p.image);
@@ -11,7 +18,7 @@
   ['search','category','stock','sort'].forEach(id => $('#'+id).setAttribute('aria-label',({search:'Search catalog',category:'Category',stock:'Availability',sort:'Sort products'})[id]));
   $('#resultCount').setAttribute('aria-live','polite');
   $('.tools').insertAdjacentHTML('afterend',`<div class="advanced">
-    <label>Metal<select id="metalFilter" class="control"><option value="">All materials</option></select></label>
+    <label>Collection<select id="collectionFilter" class="control"><option value="">All collections</option><option value="metals">Metals</option><option value="gemstones">Gemstones</option><option value="rudraksha">Rudraksha</option></select></label>\n    <label>Metal<select id="metalFilter" class="control"><option value="">All materials</option></select></label>
     <label>Gender claim<select id="genderFilter" class="control"><option value="">All gender claims</option><option value="Male">Male</option><option value="Female">Female</option><option value="Unisex">Unisex</option><option value="-">Not stated</option></select></label>
     <label>Minimum price ₹<input id="minPrice" class="control" type="number" min="0" inputmode="decimal" placeholder="Any"></label>
     <label>Maximum price ₹<input id="maxPrice" class="control" type="number" min="0" inputmode="decimal" placeholder="Any"></label>
@@ -33,7 +40,7 @@
     let shownPrice='Price unavailable';
     if(p.priceStatus==='contact_for_price')shownPrice='<a href="'+esc(p.url)+'" target="_blank" rel="noopener">Contact seller for price</a>';
     else if(price(p)!=null) shownPrice=(p.sale!=null?'<span class="old">'+fmt.format(p.regular)+'</span><br><span class="sale">'+fmt.format(p.sale)+'</span>':fmt.format(p.regular))+(p.priceStatus==='listed_unverified'?'<div class="desc">Previously observed · verify with seller</div>':'');
-    html=html.replace(/<td class="price">[\s\S]*?<\/td>/,'<td class="price">'+shownPrice+(p.priceStatus==='contact_for_price'?'':metalLine(p))+'</td>');
+    html=html.replace(/<td class="price">[\s\S]*?<\/td>/,'<td class="price">'+shownPrice+(p.priceStatus==='contact_for_price'?'':metalLine(p))+(p.unitPrice?'<div class="metal">Seller asking price '+fmt.format(p.unitPrice.amount)+' / carat<br><small>No comparable gem benchmark</small></div>':'')+'</td>');
     const m=p.metalEstimate;
     const info='<details class="row-detail"><summary>Product evidence</summary><dl><dt>Gender claim</dt><dd>'+esc(gender)+'</dd><dt>Merchant material</dt><dd>'+esc(p.material||'Not provided')+'</dd><dt>Merchant weight / size</dt><dd>'+esc(p.weightSize||'Not provided')+'</dd><dt>Price state</dt><dd>'+esc((p.priceStatus||'unknown').replaceAll('_',' '))+'</dd><dt>Detail last checked</dt><dd>'+esc(p.detailChecked||'Not recorded')+'</dd><dt>Metal assessment</dt><dd>'+esc(m?m.status.replaceAll('_',' '):'No recognized metal claim')+'</dd><dt>First catalog sighting</dt><dd>'+esc(p.firstSeen||'Unknown')+'</dd><dt>Last catalog sighting (not price freshness)</dt><dd>'+esc(p.lastSeen||'Unknown')+'</dd><dt>Record ID</dt><dd>'+esc(p.id)+'</dd></dl></details>';
     return html.replace('</td>',info+'</td>');
@@ -43,12 +50,12 @@
   let fullData=null;
   render=function(){
     if(!fullData) fullData=originalData();
-    const metal=$('#metalFilter').value,gender=$('#genderFilter').value,quality=$('#qualityFilter').value;
+    const collection=$('#collectionFilter').value,metal=$('#metalFilter').value,gender=$('#genderFilter').value,quality=$('#qualityFilter').value;
     const min=$('#minPrice').value===''?null:Number($('#minPrice').value),max=$('#maxPrice').value===''?null:Number($('#maxPrice').value);
     const query=$('#search').value;
     DATA=fullData.filter(p=>{
       const m=p.metalEstimate,pr=price(p);
-      return (!metal||(m?.detectedMetals||[]).includes(metal)) && (!gender||(p.gender||'-')===gender) && (min===null||(pr!==null&&pr>=min)) && (max===null||(pr!==null&&pr<=max)) && (!quality || (quality==='valued'&&m?.status==='estimated') || (quality==='missing-image'&&!safeImage(p)) || (quality==='missing-weight'&&!p.weightSize) || (quality==='uncertain'&&m&&m.status!=='estimated'));
+      return (!collection||groupOf(p)===collection) && (!metal||(m?.detectedMetals||[]).includes(metal)) && (!gender||(p.gender||'-')===gender) && (min===null||(pr!==null&&pr>=min)) && (max===null||(pr!==null&&pr<=max)) && (!quality || (quality==='valued'&&m?.status==='estimated') || (quality==='missing-image'&&!safeImage(p)) || (quality==='missing-weight'&&!p.weightSize) || (quality==='uncertain'&&m&&m.status!=='estimated'));
     });
     $('#search').value=normalize(query);
     originalRender();
@@ -57,14 +64,14 @@
     const prices=filtered.map(price).filter(Number.isFinite).sort((a,b)=>a-b),n=prices.length;
     const median=n?(n%2?prices[(n-1)/2]:(prices[n/2-1]+prices[n/2])/2):null;
     $('#filteredSummary').textContent=`${filtered.length.toLocaleString('en-IN')} matches · ${filtered.filter(p=>p.availability==='in_stock').length} in stock · ${filtered.filter(p=>p.availability==='unknown').length} stock unknown · ${filtered.filter(p=>p.priceStatus==='contact_for_price').length} contact for price · Median ${median===null?'unavailable':fmt.format(median)} (${n} priced records)`;
-    const u=new URL(location.href);[['q',query],['metal',metal],['gender',gender],['min',min],['max',max],['quality',quality]].forEach(([k,v])=>v===null||v===''?u.searchParams.delete(k):u.searchParams.set(k,v));history.replaceState(null,'',u);
+    const u=new URL(location.href);[['q',query],['collection',collection],['metal',metal],['gender',gender],['min',min],['max',max],['quality',quality]].forEach(([k,v])=>v===null||v===''?u.searchParams.delete(k):u.searchParams.set(k,v));history.replaceState(null,'',u);
   };
     const originalEnhance=enhance;
   enhance=function(d){
     fullData=d.products;
     const metals=[...new Set(fullData.flatMap(p=>p.metalEstimate?.detectedMetals||[]))].sort();
     $('#metalFilter').insertAdjacentHTML('beforeend',metals.map(m=>'<option>'+esc(m)+'</option>').join(''));
-    const u=new URL(location.href);[['metalFilter','metal'],['genderFilter','gender'],['minPrice','min'],['maxPrice','max'],['qualityFilter','quality']].forEach(([id,key])=>$('#'+id).value=u.searchParams.get(key)||'');
+    const u=new URL(location.href);[['collectionFilter','collection'],['metalFilter','metal'],['genderFilter','gender'],['minPrice','min'],['maxPrice','max'],['qualityFilter','quality']].forEach(([id,key])=>$('#'+id).value=u.searchParams.get(key)||'');
     const counts={};fullData.forEach(p=>{const c=p.category||'Uncategorized';counts[c]=(counts[c]||0)+1});
     const bars=rows=>rows.map(([name,n])=>'<div class="distribution"><span>'+esc(name)+'</span><meter min="0" max="'+fullData.length+'" value="'+n+'">'+n+'</meter><span>'+n+'</span></div>').join('');
     $('#categoryDistribution').innerHTML=bars(Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6));
@@ -75,7 +82,12 @@
     if(ps.length){const range=$('#priceRange');range.textContent=compact(Math.min(...ps))+'–'+compact(Math.max(...ps));range.title=fmt.format(Math.min(...ps))+' to '+fmt.format(Math.max(...ps))}
     const note=$('#priceRange').nextElementSibling;if(note)note.textContent=(d.summary.contactForPrice||0)+' contact for price · '+d.summary.pricedCount+' priced';
   };
-  ['metalFilter','genderFilter','minPrice','maxPrice','qualityFilter'].forEach(id=>$('#'+id).addEventListener('change',render));
+  ['collectionFilter','metalFilter','genderFilter','minPrice','maxPrice','qualityFilter'].forEach(id=>$('#'+id).addEventListener('change',render));
   $('#clearFilters').addEventListener('click',()=>{['metalFilter','genderFilter','minPrice','maxPrice','qualityFilter'].forEach(id=>$('#'+id).value='');render()});
+  document.querySelectorAll('[data-collection]').forEach(link=>link.addEventListener('click',()=>{
+    $('#collectionFilter').value=link.dataset.collection;
+    render();
+    $('#search').focus({preventScroll:true});
+  }));
   $('#exportResults').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({schemaVersion:1,exportedAt:new Date().toISOString(),view:location.href,recordCount:filtered.length,limitations:'Seller claims; catalog sightings do not establish price freshness; incomplete variant coverage.',products:filtered},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='catalog-filtered.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
 })();
