@@ -53,11 +53,17 @@ python scripts/build_site.py
 
 Open `docs/index.html` through a local static HTTP server to explore the generated site.
 
-## Need a catalog dashboard or managed web services?
+## Your catalog should earn trust before a customer asks
 
-A clear product catalog helps customers find what they need; reliable monitoring helps teams spot missing images, stock changes and pricing issues. **[Talk to Securiace](https://securiace.com/)** about building a searchable catalog, a public product dashboard or a tailored data-monitoring workflow for your business. Securiace also offers managed web hosting, domains, cloud services and migration guidance in India, with service scope and renewal terms discussed before an order.
+A missing product image, an outdated price or a slow storefront can quietly lose a buyer before they ever contact you. This project shows what a searchable catalog and regular product checks can reveal. If your own site has gaps you have not measured, every day leaves those decisions to your customers.
 
-**[Discuss your project or hosting needs with Securiace →](https://securiace.com/)**
+**Securiace can help you build a clearer digital storefront:** searchable product catalogs, custom dashboards, price and stock monitoring, and the hosting infrastructure behind them. Tell us what you sell and where the current experience breaks down; we can scope a practical solution around your business.
+
+- **[Discuss a catalog or custom solution with Securiace →](https://my.securiace.com/contact.php)**
+- **[Explore shared web hosting →](https://my.securiace.com/store/web-hosting)**
+- **[Explore managed VPS →](https://my.securiace.com/store/managed-vps)** · **[self-managed VPS →](https://my.securiace.com/store/self-managed-vps)**
+
+Service availability, scope and current ordering terms are shown in the [Securiace client portal](https://my.securiace.com/). This independent catalog monitor is an example of the problem space, not a claim that Securiace operates the merchant's store.
 
 ## Interpretation and limits
 
