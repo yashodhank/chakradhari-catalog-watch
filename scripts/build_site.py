@@ -61,8 +61,14 @@ try:
  with (DATA/'change-events.csv').open(encoding='utf-8-sig',newline='') as f:
   raw_events=list(csv.DictReader(f))[-250:]
  for e in reversed(raw_events):
-  if e.get('event_type') in {'added','removed_after_two_consecutive_successful_full_scans','back_in_catalog','out_of_stock','restocked','price_increase','price_decrease','sale_started','sale_ended'}:
-   events.append({'at':e.get('event_at',''),'type':e.get('event_type',''),'name':e.get('name_observed',''),
+  et=e.get('event_type')
+  pct=number(e.get('percentage_change'))
+  # Retain anomalous rows in the audit CSV, but do not surface known
+  # conversion-shaped localization artifacts as customer-facing changes.
+  if et=='price_decrease' and pct is not None and -99.5<=pct<=-90 and not e.get('notes'):
+   continue
+  if et in {'added','removed_after_two_consecutive_successful_full_scans','back_in_catalog','out_of_stock','restocked','price_increase','price_decrease','sale_started','sale_ended'}:
+   events.append({'at':e.get('event_at',''),'type':et,'name':e.get('name_observed',''),
                   'url':e.get('canonical_url',''),'old':e.get('old_value_observed',''),'new':e.get('new_value_observed',''),
                   'percent':e.get('percentage_change','')})
 except FileNotFoundError:
