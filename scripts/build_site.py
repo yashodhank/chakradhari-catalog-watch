@@ -55,7 +55,13 @@ for r in rows:
  except (TypeError,ValueError): pass
  if p['image'] and p['image'] not in p['imageCandidates']: p['imageCandidates'].append(p['image'])
  if p['priceStatus']=='contact_for_price': p['regular']=p['sale']=None
- p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}))
+ p['unitPrice']=None
+ listed=p['sale'] if p['sale'] is not None else p['regular']
+ stone=bool(re.search(r'gemstone|diamond|sapphire|emerald|ruby|opal|citrine|amethyst|garnet|turquoise|zircon|topaz|quartz|peridot',p['category']+' '+p['name'],re.I))
+ sizes=re.findall(r'(?<![\d.])(\d+(?:\.\d+)?)\s*(?:carats?|ct)\b',p['weightSize'],re.I)
+ if stone and listed is not None and len(sizes)==1 and float(sizes[0])>0:
+  p['unitPrice']={'amount':round(listed/float(sizes[0]),2),'unit':'carat','basis':'listed price divided by seller-stated stone weight; not a gemstone benchmark'}
+ p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}),rate_metadata=metal_data.get('latest',{}).get('otherRates',{}))
  products.append(p)
 
 product_by_url={p['url']:p for p in products}
