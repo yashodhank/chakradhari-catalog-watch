@@ -10,6 +10,22 @@ import update_catalog
 
 
 class ProductExtractionTests(unittest.TestCase):
+    def test_gallery_variant_and_editorial_title(self):
+        url = 'https://www.chakradhari.com/products/diamond'
+        product = {
+            'product_name': "0.31 Carat Natural Diamond Silver Ring or Pendant, If it's specifically a ring and not a pendant, adjust accordingly:",
+            'hide_price': '1', 'available': True,
+            'variants': [{'id': 'a', 'show_as_main': 1, 'allow_purchase': '0'},
+                         {'id': 'b', 'images': [{'url': 'https://cdn.shopaccino.com/chakradhari/products/diamond_m.jpg'}]}],
+        }
+        html = '<script>Theme.ProductData = '+json.dumps({'product': product})+'; Theme.Utils.Product.initProduct</script><a>Contact us for price</a>'
+        with patch.object(update_catalog, 'fetch', return_value=(200,html.encode(),'text/html')):
+            _, status, row, error = update_catalog.product_page(url)
+        self.assertEqual(status, 'success', error)
+        self.assertEqual(row['name_observed'], '0.31 Carat Natural Diamond Silver Ring or Pendant')
+        self.assertTrue(row['primary_image_url'].endswith('diamond_m.jpg'))
+        self.assertEqual(row['price_status_observed'], 'contact_for_price')
+
     def test_visible_contact_price_overrides_stale_schema_price(self):
         url = 'https://www.chakradhari.com/products/example'
         product = {
