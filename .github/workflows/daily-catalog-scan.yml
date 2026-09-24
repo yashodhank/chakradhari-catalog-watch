@@ -28,7 +28,7 @@ jobs:
           python-version: "3.12"
       - name: Validate extraction safeguards
         run: python -m unittest discover -s tests -v
-      - name: Scan public catalog with validated currency and sale safeguards
+      - name: Scan public catalog and recover remaining images
         run: |
           gunzip -c data/current-products.csv.gz > data/current-products.csv
           cat data/price-history.csv.gz.part-* | gunzip -c > data/price-history.csv
