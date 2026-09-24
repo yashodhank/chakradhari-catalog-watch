@@ -103,7 +103,7 @@ def metal_estimate(p, rates, *, rate_metadata=None):
         reference = number(record.get('ratePerGram'))
         fineness = number(record.get('purity'))
         if (record.get('currency') == 'INR' and reference and reference > 0 and fineness and 0 < fineness <= 1000
-                and record.get('source') and record.get('date') and record.get('basis') in {'benchmark', 'manual_scenario'}):
+                and record.get('source') and record.get('date') and record.get('basis') in {'benchmark', 'monthly_reference', 'manual_scenario'}):
             per_gram = reference * purity / fineness
             result.update(rateSource=record['source'], rateDate=record['date'], rateBasis=record['basis'])
     if per_gram is None and metal in {'Gold', 'Silver', 'Platinum'}:
