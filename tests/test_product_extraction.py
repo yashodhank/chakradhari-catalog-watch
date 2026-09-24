@@ -61,6 +61,27 @@ class ProductExtractionTests(unittest.TestCase):
         self.assertEqual(row['regular_price_observed'],'US $ 8.40')
         self.assertEqual(row['regular_price_normalized'],8.4)
 
+    def test_json_ld_price_wins_when_product_data_is_edge_localized(self):
+        url = 'https://www.chakradhari.com/products/example-localized'
+        product = {
+            'id': '3001', 'product_name': 'Emerald',
+            'hide_price': '0', 'available': True,
+            'variants': [{'id': '3', 'product_price': 54374,
+                          'compare_at_price': 0, 'allow_purchase': '1', 'show_as_main': 1}],
+        }
+        schema = {'@type': 'Product', 'name': 'Emerald',
+                  'offers': {'price': '38838.40', 'priceCurrency': 'INR',
+                             'availability': 'https://schema.org/InStock'}}
+        html = ('<script>Theme.ProductData = '+json.dumps({'product': product})+'; '
+                'Theme.Utils.Product.initProduct</script>'
+                '<script type="application/ld+json">'+json.dumps(schema)+'</script>')
+        with patch.object(update_catalog, 'fetch', return_value=(200,html.encode(),'text/html')):
+            _, status, row, error = update_catalog.product_page(url)
+        self.assertEqual(status,'success',error)
+        self.assertEqual(row['currency_normalized'],'INR')
+        self.assertEqual(row['regular_price_observed'],'₹ 38,838.40')
+        self.assertEqual(row['regular_price_normalized'],38838.4)
+
 
 if __name__ == '__main__':
     unittest.main()
