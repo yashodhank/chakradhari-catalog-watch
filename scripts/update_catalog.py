@@ -83,11 +83,19 @@ def product_page(u):
   for x in bc.get('itemListElement',[]):
    n=text((x.get('item') or {}).get('name') if isinstance(x.get('item'),dict) else x.get('name'))
    if n and n.lower() not in ('home',text(ld.get('name')).lower()): crumbs.append(n)
-  regular=money(offers.get('price'))
+  offer_price=money(offers.get('price'))
   variants=pdata.get('variants') or []
   main=next((v for v in variants if str(v.get('show_as_main'))=='1'),variants[0] if variants else {})
-  if main and (money(main.get('compare_at_price')) or 0)>0: regular=money(main.get('compare_at_price'))/100
-  net=money(main.get('product_price'))/100 if main and money(main.get('product_price')) is not None else regular
+  main_regular=money(main.get('compare_at_price'))/100 if main and (money(main.get('compare_at_price')) or 0)>0 else None
+  main_net=money(main.get('product_price'))/100 if main and money(main.get('product_price')) is not None else None
+  # JSON-LD price and currency form one atomic observation. ProductData may be
+  # localized independently by edge location, so only use it when compatible.
+  if offer_price is not None and offer_price>0:
+   net=offer_price
+   regular=main_regular if main_regular and 0.5<=main_regular/offer_price<=5 else offer_price
+  else:
+   net=main_net
+   regular=main_regular or main_net
   hidden=str(pdata.get('hide_price','')).strip().lower() in ('1','true','yes')
   contact=bool(re.search(r'Contact us for price',h,re.I))
   price_status='contact_for_price' if hidden or contact else 'listed' if net is not None and net>0 else 'unknown'
