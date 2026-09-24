@@ -100,7 +100,7 @@ except Exception:
 category_sources=[s for s in sources if s.get('type') in ('category','collection')]
 summary={'total':len(products),'inStock':ins,'outOfStock':outs,'unknown':len(products)-ins-outs,
          'currency':'INR','categories':len(category_sources),'categorySuccess':sum(s.get('status')=='success' for s in category_sources),
-         'productPagesEnriched':sum(bool(p['name']) for p in products),'onSale':sum(p['sale'] is not None for p in products),
+         'productPagesEnriched':sum(bool(p['detailChecked']) for p in products),'onSale':sum(p['sale'] is not None for p in products),
          'contactForPrice':sum(p['priceStatus']=='contact_for_price' for p in products),'pricedCount':len(prices),
          'medianPrice':statistics.median(prices) if prices else None,'minPrice':min(prices) if prices else None,
          'maxPrice':max(prices) if prices else None,'eventCount':len(events)}
