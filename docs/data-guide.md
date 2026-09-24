@@ -2,6 +2,12 @@
 
 Start with `products-manifest.json`. Its `productChunks` array lists relative JSON files; concatenate their arrays. Do not assume a fixed number of chunks. The manifest and chunks are deployed together. Check HTTP status and JSON shape; retry temporary failures at most twice.
 
+## Product-form browse taxonomy
+
+The dashboard infers form from explicit words in the merchant's product name or category, independently of the Metals / Gemstones / Rudraksha collection filter. Rings, payal / anklets, bangles / kada / bracelets, chains / necklaces, utensils / vessels, pendants / lockets and malas can overlap. “Other articles” applies only when the name or category explicitly says article and no more specific form matched. A gemstone described as “ring or pendant” belongs to both browse results; this does **not** assert that separate variants were captured or that either setting is included in the listed price. Listings without a matching term remain available through Entire catalog, category, and search. The URL query parameter `type` reflects the selected form, but forms are currently inferred in the interface, not stored as an independently verified source field. Counts represent canonical product records and must not be summed across overlapping forms.
+
+Useful evidence to capture on later crawls: individual variant IDs and setting choices; net metal versus gross item weight; actual image HTTP validation and variant-image mapping; quote-only transitions; explicit capacity units on utensils; hallmark and certificate identifiers; merchant review-count changes. Keep missing values unknown and date-stamp each observation.
+
 ## Meaning and limits
 
 - Grain: one merchant canonical product URL, not every variant. `id` is the stable monitor identifier.
