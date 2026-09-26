@@ -96,7 +96,9 @@ def metal_estimate(p, rates, *, rate_metadata=None):
     if purity is None and metal == 'Gold':
         karat = re.search(r'(?<!\d)(24|22|18|14)\s*(?:k|kt|karat|carat)\b', text, re.I)
         if karat:
-            purity = float(karat[1]) / 24 * 1000
+            # Use the fineness grades published alongside the reference rates,
+            # rather than a repeating decimal that cannot select a benchmark.
+            purity = {'24': 999, '22': 916, '18': 750, '14': 585}[karat[1]]
     if purity is None:
         return unavailable(result, 'purity_unknown', 'stated metal purity')
     result.update(purity=round(purity, 3), purityBasis='seller_claim')

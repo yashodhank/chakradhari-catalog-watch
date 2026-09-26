@@ -62,6 +62,10 @@ class MetalValuationTests(unittest.TestCase):
     def test_weight_size_preferred(self):
         self.assertEqual(self.estimate('999 Silver coin 10 g / 20 g', weightSize='10 g')['weightGrams'], 10)
 
+    def test_standard_karat_claims_use_the_published_benchmark_grade(self):
+        value = self.estimate('22K Gold chain 11 g')
+        self.assertEqual(value['purity'], 916)
+
 
 if __name__ == '__main__':
     unittest.main()
