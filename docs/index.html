@@ -21,10 +21,10 @@
       <a class="brand" href="#overview">Chakradhari Watch<small>Independent catalog monitor</small></a>
       <nav class="nav" aria-label="Dashboard sections">
         <a class="active" href="#overview">Overview</a>
+        <a href="#collections">Start browsing</a>
+        <a href="#materialBenchmarks">Material rates</a>
         <a href="#products">Browse products</a>
         <a href="#changes">Catalog changes</a>
-        <a href="#collections">Collections</a>
-        <a href="#materialBenchmarks">Material rates</a>
         <a href="#coverage">Data reliability</a>
       </nav>
       <div class="side-note"><strong>Public catalog baseline</strong><br>Daily scan · 08:00 IST<br><span>Always confirm with the merchant.</span></div>
@@ -52,6 +52,41 @@
         <article class="card"><div class="label">Observed range</div><div class="value" id="priceRange">—</div><div class="sub">Among currently listed INR prices</div></article>
       </section>
 
+      <section class="panel collections-feature" id="collections" aria-labelledby="collectionsHeading">
+        <div class="panel-head collections-feature__head">
+          <div>
+            <p class="section-kicker">Choose how to browse</p>
+            <h2 id="collectionsHeading">Start with an area of interest</h2>
+          </div>
+          <span class="meta">Applies a filter, then opens the catalog</span>
+        </div>
+        <p class="collections-feature__intro">Pick a collection to focus the catalog before you scan individual listings. You can refine or clear the selection at any time.</p>
+        <div class="collection-grid" aria-label="Catalog collections">
+          <a class="collection-card collection-card--all" href="#products" data-collection="">
+            <strong>Browse all products</strong><span>Search every monitored category</span><b>Open catalog <span aria-hidden="true">→</span></b>
+          </a>
+          <a class="collection-card" href="#products" data-collection="metals">
+            <strong>Metals</strong><span>Gold, silver, platinum and other metals</span><b>Browse metals <span aria-hidden="true">→</span></b>
+          </a>
+          <a class="collection-card" href="#products" data-collection="gemstones">
+            <strong>Gemstones</strong><span>Browse by stone, weight and setting</span><b>Browse gemstones <span aria-hidden="true">→</span></b>
+          </a>
+          <a class="collection-card" href="#products" data-collection="rudraksha">
+            <strong>Rudraksha</strong><span>Find beads, malas and silver-set pieces</span><b>Browse Rudraksha <span aria-hidden="true">→</span></b>
+          </a>
+        </div>
+        <div class="collections-feature__forms">
+          <div>
+            <h3 class="collection-heading">Or browse by product form</h3>
+            <p class="method">Names and merchant categories suggest these forms. A listing offering a ring or pendant appears in both; open the merchant listing to confirm its exact setting.</p>
+          </div>
+          <div class="type-grid" id="typeCollections"><a href="#products" data-type="ring"><strong>Rings</strong><span>Settings and rings</span><b data-type-count="ring">—</b></a><a href="#products" data-type="payal"><strong>Payal &amp; anklets</strong><span>Traditional foot jewellery</span><b data-type-count="payal">—</b></a><a href="#products" data-type="bangle"><strong>Bangles &amp; bracelets</strong><span>Kada and wristwear</span><b data-type-count="bangle">—</b></a><a href="#products" data-type="chain"><strong>Chains &amp; necklaces</strong><span>Chains and neckwear</span><b data-type-count="chain">—</b></a><a href="#products" data-type="utensils"><strong>Utensils &amp; vessels</strong><span>Kitchen and serving pieces</span><b data-type-count="utensils">—</b></a><a href="#products" data-type="pendant"><strong>Pendants</strong><span>Lockets and pendant options</span><b data-type-count="pendant">—</b></a><a href="#products" data-type="mala"><strong>Malas</strong><span>Prayer beads and neckwear</span><b data-type-count="mala">—</b></a><a href="#products" data-type="articles"><strong>Other articles</strong><span>Named metal and spiritual articles</span><b data-type-count="articles">—</b></a></div>
+        </div>
+        <p class="method collections-feature__note">Material rates are benchmarks for identified raw metals. Gemstones and Rudraksha have no universal price per carat or bead.</p>
+      </section>
+
+      <section class="panel material-panel" id="materialBenchmarks" aria-labelledby="ratesHeading"><div class="panel-head"><div><p class="section-kicker">Reference only</p><h2 id="ratesHeading">Material benchmarks</h2></div><span class="meta" id="metalRateDate">—</span></div><div class="material-layout"><div><div id="metalRates">Loading benchmark rates…</div><p class="method">Use these rates only where a listing states usable net metal weight and purity. Gemstones, Rudraksha and unspecified alloys do not have a universal per-unit benchmark.</p></div><aside class="notice"><strong>What the comparison means</strong><br>It uses only stated net metal weight and purity. Missing purity, plating, conflicting claims and unknown alloys prevent a point estimate. The remainder is a retail premium, not automatically a making charge.</aside></div><p class="method material-footnote">Bullion benchmarks exclude GST and making charges. Monthly base-metal references, when available, are marked with their month and conversion rate; they are not daily Indian retail quotes. Tax and making charges cannot be separated without an invoice.</p></section>
+
       <section class="panel products-panel" id="products" aria-labelledby="productsHeading">
         <div class="panel-head panel-head--products">
           <div><p class="section-kicker">Catalog explorer</p><h2 id="productsHeading">Browse products</h2></div>
@@ -72,20 +107,18 @@
           <button class="chip" data-sale="1">On sale</button>
           <button class="chip chip--quiet" id="clearFilters">Clear all</button>
         </div>
+        <div class="results-actions" aria-label="Product result controls"><span id="shownTop" aria-live="polite">—</span><button class="load-more" id="loadMoreTop" type="button" aria-controls="body">Show more products</button></div>
         <div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Availability</th><th>Price</th><th>Material / size</th><th>Reviews</th></tr></thead><tbody id="body"></tbody></table></div>
-        <div class="load-sentinel" id="loadSentinel" aria-hidden="true"></div>
+        <div class="results-actions results-actions--bottom"><button class="load-more" id="loadMoreBottom" type="button" aria-controls="body">Show more products</button></div>
         <div class="footer-row"><span id="shown">—</span><span>Press <kbd>/</kbd> to search · Filters are shareable by URL</span></div>
       </section>
 
       <section class="panel" id="changes" aria-labelledby="changesHeading"><div class="panel-head"><div><p class="section-kicker">Since the last catalog comparison</p><h2 id="changesHeading">Recent meaningful changes</h2></div><span class="meta" id="eventCount">—</span></div><div class="events" id="events"><div class="empty">Loading changes…</div></div></section>
 
-      <section class="panel" id="collections" aria-labelledby="collectionsHeading"><div class="panel-head"><div><p class="section-kicker">Start with an area of interest</p><h2 id="collectionsHeading">Explore collections</h2></div><span class="meta">Browse the public catalog</span></div><div class="collection-grid"><a href="#products" data-collection="metals"><strong>Metals</strong><span>Gold, silver, platinum and other metals</span></a><a href="#products" data-collection="gemstones"><strong>Gemstones</strong><span>Browse by stone, weight and setting</span></a><a href="#products" data-collection="rudraksha"><strong>Rudraksha</strong><span>Find beads, malas and silver-set pieces</span></a><a href="#products" data-collection=""><strong>Entire catalog</strong><span>All monitored product categories</span></a></div><h3 class="collection-heading">Browse by product form</h3><p class="method">Names and merchant categories suggest these forms. A listing offering a ring or pendant appears in both; open the merchant listing to confirm its exact setting.</p><div class="type-grid" id="typeCollections"><a href="#products" data-type="ring"><strong>Rings</strong><span>Settings and rings</span><b data-type-count="ring">—</b></a><a href="#products" data-type="payal"><strong>Payal &amp; anklets</strong><span>Traditional foot jewellery</span><b data-type-count="payal">—</b></a><a href="#products" data-type="bangle"><strong>Bangles &amp; bracelets</strong><span>Kada and wristwear</span><b data-type-count="bangle">—</b></a><a href="#products" data-type="chain"><strong>Chains &amp; necklaces</strong><span>Chains and neckwear</span><b data-type-count="chain">—</b></a><a href="#products" data-type="utensils"><strong>Utensils &amp; vessels</strong><span>Kitchen and serving pieces</span><b data-type-count="utensils">—</b></a><a href="#products" data-type="pendant"><strong>Pendants</strong><span>Lockets and pendant options</span><b data-type-count="pendant">—</b></a><a href="#products" data-type="mala"><strong>Malas</strong><span>Prayer beads and neckwear</span><b data-type-count="mala">—</b></a><a href="#products" data-type="articles"><strong>Other articles</strong><span>Named metal and spiritual articles</span><b data-type-count="articles">—</b></a></div><p class="method">Material rates are benchmarks for identified raw metals. Gemstones and Rudraksha have no universal price per carat or bead.</p></section>
-
-      <section class="panel" id="materialBenchmarks" aria-labelledby="ratesHeading"><div class="panel-head"><div><p class="section-kicker">Reference only</p><h2 id="ratesHeading">Material benchmarks</h2></div><span class="meta" id="metalRateDate">—</span></div><div class="coverage"><div id="metalRates">Loading benchmark rates…</div><div class="notice"><strong>What the comparison means</strong><br>It uses only stated net metal weight and purity. Missing purity, plating, conflicting claims and unknown alloys prevent a point estimate. The remainder is a retail premium, not automatically a making charge.</div></div><div class="method">Bullion benchmarks exclude GST and making charges. Monthly base-metal references, when available, are marked with their month and conversion rate; they are not daily Indian retail quotes. Gemstones, Rudraksha and unspecified alloys need product-specific evidence. Tax and making charges cannot be separated without an invoice.</div></section>
-
       <section class="panel" id="coverage" aria-labelledby="coverageHeading"><div class="panel-head"><div><p class="section-kicker">Read before acting on a listing</p><h2 id="coverageHeading">Coverage and reliability</h2></div><span class="meta">Updated daily</span></div><div class="coverage"><div class="bars"><div class="bar-row"><span>Category sources</span><div class="bar"><i id="catBar"></i></div><b id="catCoverage">—</b></div><div class="bar-row"><span>Detail pages verified</span><div class="bar"><i class="warn" id="detailBar"></i></div><b id="detailCoverage">—</b></div></div><div class="notice"><strong>Important:</strong> Removal requires two consecutive successful complete sitemap comparisons. Partial or failed scans never advance removal status. Always verify price and availability on the linked product page.</div></div></section>
     </main>
   </div>
+  <script src="catalog-pagination.js"></script>
   <script src="catalog.js"></script>
   <script src="explore.js"></script>
 </body>

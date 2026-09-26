@@ -36,6 +36,12 @@ def number(value):
         return None
 
 
+def unavailable(result, status, *missing):
+    """Keep an unavailable comparison actionable without inventing a value."""
+    result.update(status=status, calculationState='unavailable', missingEvidence=list(missing))
+    return result
+
+
 def metal_estimate(p, rates, *, rate_metadata=None):
     """Return an evidence-labelled estimate or explicit non-estimable status."""
     fields = {k: str(p.get(k) or '') for k in ('name', 'material', 'weightSize', 'subtitle')}
@@ -49,17 +55,18 @@ def metal_estimate(p, rates, *, rate_metadata=None):
     plated = bool(re.search(r'\b(?:plat(?:ed|ing)|coated|gold[ -]filled|vermeil|silver[ -]tone|gold[ -]tone)\b', text, re.I))
     metal = metals[0] if len(metals) == 1 else ' / '.join(metals)
     result = {'metal': metal, 'detectedMetals': metals, 'materialKind': 'alloy' if any(m in ALLOYS for m in metals) else 'metal',
-              'purityBasis': 'unknown', 'status': 'weight_missing', 'taxBasis': 'unknown',
+              'purityBasis': 'unknown', 'status': 'weight_missing', 'calculationState': 'unavailable',
+              'missingEvidence': ['net metal weight'], 'taxBasis': 'unknown',
               'evidence': {k: v for k, v in fields.items() if v},
               'caveat': 'Seller claims are not independently assayed. Retail residual is not a making-charge quote.'}
     if 'Mercury' in metals:
         result['safetyNote'] = 'Parad is a seller material claim; mercury content and binding composition are unverified. No handling-safety inference.'
     if plated:
-        result.update(status='plated_or_coated', materialKind='plated')
-        return result
+        result.update(materialKind='plated')
+        return unavailable(result, 'plated_or_coated', 'solid-metal composition', 'net metal weight')
     if len(metals) > 1:
-        result.update(status='composition_unknown', materialKind='mixed')
-        return result
+        result.update(materialKind='mixed')
+        return unavailable(result, 'composition_unknown', 'alloy composition', 'net metal weight')
     # Do not silently choose the minimum of variant, gross and shipping weights.
     weight_text = fields['weightSize'] or text
     matches = list(re.finditer(WEIGHT, weight_text, re.I))
@@ -67,18 +74,15 @@ def metal_estimate(p, rates, *, rate_metadata=None):
     ranged = bool(re.search(r'\d\s*(?:[-–—/]|to|±)\s*\d', weight_text))
     gross = bool(re.search(r'\b(?:shipping|packed|package|gross)\s*(?:weight)?\b', weight_text, re.I))
     if ranged or len(weights) > 1:
-        result['status'] = 'weight_ambiguous'
-        return result
+        return unavailable(result, 'weight_ambiguous', 'one stated net metal weight')
     if not weights or not 0 < next(iter(weights)) <= 100000:
         return result
     weight = next(iter(weights))
     result.update(weightGrams=weight, weightBasis='seller_claim', weightEvidence=matches[0][0])
     if gross or re.search(r'\b(?:stone|stones|wood|wooden|rudraksha|beads|gemstone|crystal|filled)\b', text, re.I):
-        result['status'] = 'net_metal_weight_unknown'
-        return result
+        return unavailable(result, 'net_metal_weight_unknown', 'net metal weight excluding non-metal parts')
     if metal in ALLOYS:
-        result['status'] = 'composition_unknown'
-        return result
+        return unavailable(result, 'composition_unknown', 'alloy composition')
     purity = None
     pct = re.search(r'(\d+(?:\.\d+)?)\s*%\s*(?:pure\s*)?(?:' + ALIASES[metal] + r')\b', text, re.I)
     if not pct:
@@ -92,10 +96,11 @@ def metal_estimate(p, rates, *, rate_metadata=None):
     if purity is None and metal == 'Gold':
         karat = re.search(r'(?<!\d)(24|22|18|14)\s*(?:k|kt|karat|carat)\b', text, re.I)
         if karat:
-            purity = float(karat[1]) / 24 * 1000
+            # Use the fineness grades published alongside the reference rates,
+            # rather than a repeating decimal that cannot select a benchmark.
+            purity = {'24': 999, '22': 916, '18': 750, '14': 585}[karat[1]]
     if purity is None:
-        result['status'] = 'purity_unknown'
-        return result
+        return unavailable(result, 'purity_unknown', 'stated metal purity')
     result.update(purity=round(purity, 3), purityBasis='seller_claim')
     record = (rate_metadata or {}).get(metal)
     per_gram = None
@@ -117,10 +122,9 @@ def metal_estimate(p, rates, *, rate_metadata=None):
         if per_gram is not None:
             result['rateBasis'] = 'benchmark'
     if per_gram is None:
-        result['status'] = 'rate_missing'
-        return result
+        return unavailable(result, 'rate_missing', 'validated reference rate')
     value = weight * per_gram
-    result.update(status='estimated', ratePerGram=round(per_gram, 4), metalValue=round(value, 2), currency='INR')
+    result.update(status='estimated', calculationState='available', missingEvidence=[], ratePerGram=round(per_gram, 4), metalValue=round(value, 2), currency='INR')
     listed = number(p.get('sale') if p.get('sale') is not None else p.get('regular'))
     if listed is not None and listed >= 0:
         result.update(listedPrice=listed, retailResidual=round(listed-value, 2),
