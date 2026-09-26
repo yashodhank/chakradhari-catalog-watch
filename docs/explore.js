@@ -57,7 +57,12 @@
     else if(price(p)!=null) shownPrice=(p.sale!=null?'<span class="old">'+fmt.format(p.regular)+'</span><br><span class="sale">'+fmt.format(p.sale)+'</span>':fmt.format(p.regular))+(p.priceStatus==='listed_unverified'?'<div class="desc">Previously observed · verify with seller</div>':'');
     html=html.replace(/<td class="price">[\s\S]*?<\/td>/,'<td class="price">'+shownPrice+(p.priceStatus==='contact_for_price'?'':metalLine(p))+(p.unitPrice?'<div class="metal">Product ask / stated ct '+fmt.format(p.unitPrice.amount)+' / carat<br><small>May include setting · no gem benchmark</small></div>':'')+'</td>');
     const m=p.metalEstimate;
-    const info='<details class="row-detail"><summary>Product evidence</summary><dl><dt>Gender claim</dt><dd>'+esc(gender)+'</dd><dt>Merchant material</dt><dd>'+esc(p.material||'Not provided')+'</dd><dt>Merchant weight / size</dt><dd>'+esc(p.weightSize||'Not provided')+'</dd><dt>Price state</dt><dd>'+esc((p.priceStatus||'unknown').replaceAll('_',' '))+'</dd><dt>Detail last checked</dt><dd>'+esc(p.detailChecked||'Not recorded')+'</dd><dt>Metal assessment</dt><dd>'+esc(m?m.status.replaceAll('_',' '):'No recognized metal claim')+'</dd><dt>First catalog sighting</dt><dd>'+esc(p.firstSeen||'Unknown')+'</dd><dt>Last catalog sighting (not price freshness)</dt><dd>'+esc(p.lastSeen||'Unknown')+'</dd><dt>Record ID</dt><dd>'+esc(p.id)+'</dd></dl></details>';
+    const dateLabel=value=>{const date=value?new Date(value):null;return date&&!Number.isNaN(date.valueOf())?date.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Kolkata'}):'Not recorded'};
+    const field=(label,value,kind='')=>'<div class="row-detail__field '+kind+'"><dt>'+label+'</dt><dd>'+esc(value)+'</dd></div>';
+    const info='<details class="row-detail"><summary><span class="row-detail__title">Product details</span><span class="row-detail__hint">Merchant data &amp; catalog history</span></summary><dl class="row-detail__fields">'
+      +field('Gender claim',gender)+field('Merchant material',p.material||'Not provided')+field('Merchant weight / size',p.weightSize||'Not provided')+field('Price state',(p.priceStatus||'unknown').replaceAll('_',' '))
+      +field('Listing checked',dateLabel(p.detailChecked))+field('Metal assessment',m?m.status.replaceAll('_',' '):'No recognized metal claim')+field('First catalog sighting',dateLabel(p.firstSeen))+field('Last catalog sighting',dateLabel(p.lastSeen))
+      +field('Record ID',p.id,'row-detail__field--technical')+'</dl></details>';
     return html.replace('</td>',info+'</td>');
   };
   const originalRender=render;

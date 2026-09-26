@@ -9,8 +9,11 @@ const catalog = fs.readFileSync(path.join(docs, 'catalog.js'), 'utf8');
 const explore = fs.readFileSync(path.join(docs, 'explore.js'), 'utf8');
 const styles = fs.readFileSync(path.join(docs, 'refinements.css'), 'utf8');
 
-test('puts material benchmarks before the potentially long product browser', () => {
+test('puts the collection chooser before reference material and the long product browser', () => {
+  assert.ok(index.indexOf('id="collections"') < index.indexOf('id="materialBenchmarks"'));
   assert.ok(index.indexOf('id="materialBenchmarks"') < index.indexOf('id="products"'));
+  assert.match(index, /class="panel collections-feature"/);
+  assert.match(styles, /\.collections-feature\{border-color:var\(--green\)/);
 });
 
 test('keeps product loading intentional and reachable without scrolling', () => {
@@ -34,4 +37,11 @@ test('presents filtered catalog status as labelled metrics instead of one run-on
   assert.match(explore, /metric\('In stock'/);
   assert.match(explore, /metric\('Median asking price'/);
   assert.match(styles, /\.scope--metrics\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(132px,1fr\)\)/);
+});
+
+test('keeps product evidence compact, legible, and free of raw machine timestamps', () => {
+  assert.match(explore, /class="row-detail__title">Product details/);
+  assert.match(explore, /class="row-detail__fields"/);
+  assert.match(explore, /toLocaleDateString\('en-IN'/);
+  assert.match(styles, /\.row-detail__fields\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(140px,1fr\)\)/);
 });
