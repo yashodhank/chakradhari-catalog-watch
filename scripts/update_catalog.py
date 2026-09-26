@@ -3,6 +3,7 @@ import csv, json, re, hashlib, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit, urljoin
 
@@ -25,7 +26,8 @@ def hashrow(r):
  keys=['name_observed','canonical_url','breadcrumb_category_observed','variant_attributes_observed','availability_normalized','regular_price_normalized','sale_price_normalized','price_status_observed','gender_observed','currency_normalized','material_observed','weight_size_observed','rating_normalized','review_count_normalized','primary_image_url','image_candidates_observed']
  return hashlib.sha256(json.dumps({k:r.get(k,'') for k in keys},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
 
-EXTRA_FIELDS=['gender_observed','price_status_observed','image_candidates_observed','detail_last_checked']
+EXTRACTION_VERSION='2'
+EXTRA_FIELDS=['gender_observed','price_status_observed','image_candidates_observed','detail_last_checked','extraction_version']
 EVIDENCE_FIELDS=('material','materials','metal','metal_type','product_material','description','short_description',
                  'long_description','product_description','weight','weight_size','weightSize','size',
                  'specification','specifications','product_specifications','features','details')
@@ -49,6 +51,27 @@ def merchant_evidence(*records):
   for key in EVIDENCE_FIELDS:
    if key in record: values.extend(evidence_values(record[key]))
  return ' '.join(dict.fromkeys(text(value) for value in values if text(value)))
+
+class SpecificationTableParser(HTMLParser):
+ """Collect table rows only; callers decide which labels count as product facts."""
+ def __init__(self):
+  super().__init__(); self.rows=[]; self.cells=[]; self.cell=None
+ def handle_starttag(self, tag, attrs):
+  if tag=='tr': self.cells=[]
+  elif tag in ('td','th') and self.cells is not None: self.cell=[]
+  elif tag=='br' and self.cell is not None: self.cell.append(' ')
+ def handle_data(self, data):
+  if self.cell is not None: self.cell.append(data)
+ def handle_endtag(self, tag):
+  if tag in ('td','th') and self.cell is not None:
+   self.cells.append(text(''.join(self.cell))); self.cell=None
+  elif tag=='tr' and len(self.cells)>=2:
+   self.rows.append(tuple(self.cells)); self.cells=[]
+
+def visible_specification_evidence(html):
+ parser=SpecificationTableParser(); parser.feed(html)
+ labels=re.compile(r'\b(?:weight|length|size|dimension|metal|material|composition)\b',re.I)
+ return ' '.join(text(' '.join(row[:2])) for row in parser.rows if labels.search(row[0]))
 
 def valid_image(value,base):
  if not isinstance(value,str) or not value.strip(): return ''
@@ -139,7 +162,7 @@ def product_page(u):
   attrs=[]
   for k in ('size','color','title'):
    if main.get(k): attrs.append(f'{k}={main[k]}')
-  desc=' '.join([text(ld.get('name')),text(ld.get('description')),text(pdata.get('product_name')),merchant_evidence(pdata,main,ld)])
+  desc=' '.join([text(ld.get('name')),text(ld.get('description')),text(pdata.get('product_name')),merchant_evidence(pdata,main,ld),visible_specification_evidence(h)])
   mats=', '.join(x for x in ['Gold','Silver','Platinum','Copper','Brass','Bronze','Kansa','Tin','Zinc','Aluminium','Lead','Nickel','Iron','Steel','Parad','Rudraksha','Sandalwood','Quartz','Gemstone'] if re.search(r'\b'+x+r'\b',desc,re.I))
   ws='; '.join(dict.fromkeys(re.findall(r'\b\d+(?:\.\d+)?\s*(?:kg|g|gms?|grams?|gm|ml|litres?|liters?|lt|mm|cm|inch(?:es)?|carats?|ct)\b',desc,re.I)))[:500]
   name=text(pdata.get('product_name') or ld.get('name')).strip('"“”')
@@ -147,7 +170,7 @@ def product_page(u):
   images=image_candidates(pdata,main,ld,h,u)
   currency=text(offers.get('priceCurrency') or pdata.get('currency') or 'INR').upper()
   currency_mark={'INR':'₹','USD':'US $','EUR':'€','GBP':'£'}.get(currency,currency)
-  row={'observed_product_id':text(pdata.get('id')),'observed_sku':text(main.get('sku') or ld.get('sku') or ld.get('productID')),'observed_variant_id':text(main.get('id')),'name_observed':name,'canonical_url':norm(ld.get('url') or u),'breadcrumb_category_observed':' > '.join(crumbs),'variant_attributes_observed':' | '.join(attrs),'availability_observed':text(offers.get('availability') if isinstance(offers,dict) else ''),'availability_normalized':'in_stock' if avail is True else 'out_of_stock' if avail is False else 'unknown','regular_price_observed':f"{currency_mark} {regular:,.2f}" if regular is not None else '','regular_price_normalized':regular if regular is not None else '','sale_price_observed':f"{currency_mark} {sale:,.2f}" if sale is not None else '','sale_price_normalized':sale if sale is not None else '','currency_observed':currency,'currency_normalized':currency,'discount_observed':f"{(regular-sale)*100/regular:.2f}%" if regular and sale is not None else '','discount_pct_normalized':round((regular-sale)*100/regular,2) if regular and sale is not None else '','material_observed':mats,'weight_size_observed':ws,'rating_observed':text(agg.get('ratingValue')),'rating_normalized':money(agg.get('ratingValue')) if agg else '','review_count_observed':text(agg.get('reviewCount')),'review_count_normalized':int(agg.get('reviewCount')) if str(agg.get('reviewCount','')).isdigit() else '','primary_image_url':images[0] if images else '','image_candidates_observed':json.dumps(images),'gender_observed':gender_claim(pdata,main),'price_status_observed':price_status,'detail_last_checked':NOW,'source_url':u,'all_source_urls':u,'subtitle_observed':text(ld.get('description'))}
+  row={'observed_product_id':text(pdata.get('id')),'observed_sku':text(main.get('sku') or ld.get('sku') or ld.get('productID')),'observed_variant_id':text(main.get('id')),'name_observed':name,'canonical_url':norm(ld.get('url') or u),'breadcrumb_category_observed':' > '.join(crumbs),'variant_attributes_observed':' | '.join(attrs),'availability_observed':text(offers.get('availability') if isinstance(offers,dict) else ''),'availability_normalized':'in_stock' if avail is True else 'out_of_stock' if avail is False else 'unknown','regular_price_observed':f"{currency_mark} {regular:,.2f}" if regular is not None else '','regular_price_normalized':regular if regular is not None else '','sale_price_observed':f"{currency_mark} {sale:,.2f}" if sale is not None else '','sale_price_normalized':sale if sale is not None else '','currency_observed':currency,'currency_normalized':currency,'discount_observed':f"{(regular-sale)*100/regular:.2f}%" if regular and sale is not None else '','discount_pct_normalized':round((regular-sale)*100/regular,2) if regular and sale is not None else '','material_observed':mats,'weight_size_observed':ws,'rating_observed':text(agg.get('ratingValue')),'rating_normalized':money(agg.get('ratingValue')) if agg else '','review_count_observed':text(agg.get('reviewCount')),'review_count_normalized':int(agg.get('reviewCount')) if str(agg.get('reviewCount','')).isdigit() else '','primary_image_url':images[0] if images else '','image_candidates_observed':json.dumps(images),'gender_observed':gender_claim(pdata,main),'price_status_observed':price_status,'detail_last_checked':NOW,'extraction_version':EXTRACTION_VERSION,'source_url':u,'all_source_urls':u,'subtitle_observed':text(ld.get('description'))}
   row['monitor_id']=hashlib.sha256(row['canonical_url'].encode()).hexdigest()[:20]; row['content_hash']=hashrow(row)
   return u,'success',row,None
  except Exception as e: return u,'error',None,f'{type(e).__name__}: {e}'
@@ -204,7 +227,7 @@ def run_scan():
  tofetch=set(newurls | suspicious_localized | {u for u in product_urls if not previous_run or lastmods.get(u,'')>=previous_run})
  # Rotate older records that need image, gender or price-state validation, even when
  # the merchant's sitemap lastmod has not changed. Bound added traffic per scan.
- needs=[u for u in product_urls if u in byurl and u not in tofetch and (not valid_image(byurl[u].get('primary_image_url',''),u) or not byurl[u].get('gender_observed') or not byurl[u].get('price_status_observed'))]
+ needs=[u for u in product_urls if u in byurl and u not in tofetch and (not valid_image(byurl[u].get('primary_image_url',''),u) or not byurl[u].get('gender_observed') or not byurl[u].get('price_status_observed') or byurl[u].get('extraction_version')!=EXTRACTION_VERSION)]
  needs.sort(key=lambda u:(byurl[u].get('detail_last_checked') or byurl[u].get('last_changed') or '',u))
  tofetch=sorted(tofetch|set(needs[:1000]))
  results=[]

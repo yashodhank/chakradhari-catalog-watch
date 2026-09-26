@@ -24,6 +24,23 @@ class ProductExtractionTests(unittest.TestCase):
         self.assertEqual(row['material_observed'], 'Copper')
         self.assertIn('125 g', row['weight_size_observed'])
 
+    def test_visible_product_specification_table_is_used_for_weight_and_material(self):
+        url = 'https://www.chakradhari.com/products/bis-hallmark-chain'
+        product = {
+            'id': '1002', 'product_name': '22K Biscuit Design Gold Chain',
+            'variants': [{'id': 'a', 'show_as_main': 1, 'allow_purchase': '1'}],
+        }
+        html = ('<script>Theme.ProductData = '+json.dumps({'product': product})+'; Theme.Utils.Product.initProduct</script>'
+                '<table><tr><td>Weight &amp; Length</td><td>Approx. 11grams &amp; 50.8cm</td></tr>'
+                '<tr><td>Metal Composition</td><td>Crafted from BIS Hallmarked 22K gold.</td></tr></table>')
+        with patch.object(update_catalog, 'fetch', return_value=(200,html.encode(),'text/html')):
+            _, status, row, error = update_catalog.product_page(url)
+        self.assertEqual(status, 'success', error)
+        self.assertEqual(row['material_observed'], 'Gold')
+        self.assertIn('11grams', row['weight_size_observed'])
+        self.assertIn('50.8cm', row['weight_size_observed'])
+        self.assertEqual(row['extraction_version'], update_catalog.EXTRACTION_VERSION)
+
     def test_gallery_variant_and_editorial_title(self):
         url = 'https://www.chakradhari.com/products/diamond'
         product = {
