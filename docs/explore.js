@@ -38,7 +38,7 @@
     <label>Minimum price ₹<input id="minPrice" class="control" type="number" min="0" inputmode="decimal" placeholder="Any"></label>
     <label>Maximum price ₹<input id="maxPrice" class="control" type="number" min="0" inputmode="decimal" placeholder="Any"></label>
     <label>Data availability<select id="qualityFilter" class="control"><option value="">All products</option><option value="valued">Metal value available</option><option value="missing-image">Missing image</option><option value="missing-weight">Weight / size missing</option><option value="uncertain">Metal value unavailable</option></select></label>
-  </div><div class="scope" id="filteredSummary" aria-live="polite">Loading product evidence…</div>`);
+  </div><div class="scope scope--metrics" id="filteredSummary" role="status" aria-live="polite">Loading product evidence…</div>`);
   $('#coverage').insertAdjacentHTML('beforebegin','<section class="panel composition-panel" id="catalogComposition" aria-labelledby="compositionHeading"><div class="panel-head"><div><p class="section-kicker">Catalog health</p><h2 id="compositionHeading">Catalog composition</h2></div><span class="meta">Entire loaded catalog</span></div><p class="panel-intro">A quick view of where listings are concentrated and which merchant-provided fields are available. It describes the monitored catalog, not product quality.</p><div class="insight-grid"><div><h3>Largest categories</h3><div id="categoryDistribution"></div></div><div><h3>Available product information</h3><div id="dataDistribution"></div></div></div></section>');
   $('#products').insertAdjacentHTML('afterend','<section class="panel"><div class="panel-head"><h2>Data and methodology</h2></div><div class="data-links"><a href="products-manifest.json">JSON manifest</a><a href="data-guide.md">Field definitions and bot guide</a><button class="chip" id="exportResults">Download filtered JSON</button></div><p class="method">One record per canonical product URL; complete variant coverage is not available. Catalog sightings are not fresh price checks. Prices, availability and material claims must be confirmed with the merchant. Image presence does not guarantee a working image.</p></section>');
   const originalRow = row;
@@ -78,7 +78,14 @@
     DATA=fullData;
     const prices=filtered.map(price).filter(Number.isFinite).sort((a,b)=>a-b),n=prices.length;
     const median=n?(n%2?prices[(n-1)/2]:(prices[n/2-1]+prices[n/2])/2):null;
-    $('#filteredSummary').textContent=`${filtered.length.toLocaleString('en-IN')} matches · ${filtered.filter(p=>p.availability==='in_stock').length} in stock · ${filtered.filter(p=>p.availability==='unknown').length} stock unknown · ${filtered.filter(p=>p.priceStatus==='contact_for_price').length} contact for price · Median ${median===null?'unavailable':fmt.format(median)} (${n} priced records)`;
+    const metric=(label,value,kind='')=>'<span class="scope__metric '+kind+'"><strong>'+value+'</strong><span class="scope__label">'+label+'</span></span>';
+    $('#filteredSummary').innerHTML=[
+      metric('Matching products',filtered.length.toLocaleString('en-IN'),'scope__metric--primary'),
+      metric('In stock',filtered.filter(p=>p.availability==='in_stock').length.toLocaleString('en-IN')),
+      metric('Stock unknown',filtered.filter(p=>p.availability==='unknown').length.toLocaleString('en-IN'),'scope__metric--caution'),
+      metric('Contact for price',filtered.filter(p=>p.priceStatus==='contact_for_price').length.toLocaleString('en-IN')),
+      metric('Median asking price',median===null?'Unavailable':fmt.format(median))
+    ].join('')+'<span class="scope__note">Based on '+n.toLocaleString('en-IN')+' priced records</span>';
     const u=new URL(location.href);[['q',query],['collection',collection],['type',type],['metal',metal],['gender',gender],['min',min],['max',max],['quality',quality]].forEach(([k,v])=>v===null||v===''?u.searchParams.delete(k):u.searchParams.set(k,v));history.replaceState(null,'',u);
   };
     const originalEnhance=enhance;

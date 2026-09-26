@@ -6,6 +6,7 @@ const path = require('node:path');
 const docs = path.join(__dirname, '..', 'docs');
 const index = fs.readFileSync(path.join(docs, 'index.html'), 'utf8');
 const catalog = fs.readFileSync(path.join(docs, 'catalog.js'), 'utf8');
+const explore = fs.readFileSync(path.join(docs, 'explore.js'), 'utf8');
 const styles = fs.readFileSync(path.join(docs, 'refinements.css'), 'utf8');
 
 test('puts material benchmarks before the potentially long product browser', () => {
@@ -25,4 +26,12 @@ test('uses content-width grids for the affected responsive sections', () => {
   assert.match(styles, /\.type-grid\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(175px,1fr\)\)\}/);
   assert.match(styles, /\.collection-grid a,.type-grid a\{display:flex;flex-direction:column/);
   assert.match(styles, /\.rate-grid\{grid-template-columns:repeat\(auto-fit,minmax\(180px,1fr\)\)\}/);
+});
+
+test('presents filtered catalog status as labelled metrics instead of one run-on sentence', () => {
+  assert.match(explore, /class="scope scope--metrics"/);
+  assert.match(explore, /const metric=.*scope__metric/);
+  assert.match(explore, /metric\('In stock'/);
+  assert.match(explore, /metric\('Median asking price'/);
+  assert.match(styles, /\.scope--metrics\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(132px,1fr\)\)/);
 });
