@@ -32,6 +32,12 @@ class MetalValuationTests(unittest.TestCase):
         for name in ['Brass', 'Bronze', 'Kansa', 'Panchdhatu', 'Stainless steel']:
             self.assertEqual(self.estimate(name + ' bowl 100 g')['status'], 'composition_unknown')
 
+    def test_mixed_material_explains_why_raw_metal_comparison_is_blocked(self):
+        value = self.estimate('Copper and brass ring')
+        self.assertEqual(value['status'], 'composition_unknown')
+        self.assertEqual(value['calculationState'], 'unavailable')
+        self.assertEqual(value['missingEvidence'], ['alloy composition', 'net metal weight'])
+
     def test_other_metals_supported(self):
         for name in ['Copper', 'Tin', 'Ranga', 'Zinc', 'Aluminium', 'Lead', 'Nickel', 'Iron', 'Mercury', 'Parad']:
             self.assertIsNotNone(self.estimate(name + ' 100 g'))

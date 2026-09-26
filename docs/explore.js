@@ -58,10 +58,11 @@
     html=html.replace(/<td class="price">[\s\S]*?<\/td>/,'<td class="price">'+shownPrice+(p.priceStatus==='contact_for_price'?'':metalLine(p))+(p.unitPrice?'<div class="metal">Product ask / stated ct '+fmt.format(p.unitPrice.amount)+' / carat<br><small>May include setting · no gem benchmark</small></div>':'')+'</td>');
     const m=p.metalEstimate;
     const dateLabel=value=>{const date=value?new Date(value):null;return date&&!Number.isNaN(date.valueOf())?date.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Kolkata'}):'Not recorded'};
+    const metalAssessment=value=>{if(!value)return 'No recognized metal claim';if(value.status==='estimated')return 'Comparable raw-metal value available';const needs=Array.isArray(value.missingEvidence)&&value.missingEvidence.length?value.missingEvidence:({composition_unknown:['alloy composition','net metal weight'],weight_missing:['net metal weight'],weight_ambiguous:['one stated net metal weight'],net_metal_weight_unknown:['net metal weight excluding non-metal parts'],purity_unknown:['stated metal purity'],plated_or_coated:['solid-metal composition','net metal weight'],rate_missing:['validated reference rate']}[value.status]||[]);return 'No calculation: '+(needs.length?'need '+needs.join(' and '):value.status.replaceAll('_',' '))};
     const field=(label,value,kind='')=>'<div class="row-detail__field '+kind+'"><dt>'+label+'</dt><dd>'+esc(value)+'</dd></div>';
     const info='<details class="row-detail"><summary><span class="row-detail__title">Product details</span><span class="row-detail__hint">Merchant data &amp; catalog history</span></summary><dl class="row-detail__fields">'
       +field('Gender claim',gender)+field('Merchant material',p.material||'Not provided')+field('Merchant weight / size',p.weightSize||'Not provided')+field('Price state',(p.priceStatus||'unknown').replaceAll('_',' '))
-      +field('Listing checked',dateLabel(p.detailChecked))+field('Metal assessment',m?m.status.replaceAll('_',' '):'No recognized metal claim')+field('First catalog sighting',dateLabel(p.firstSeen))+field('Last catalog sighting',dateLabel(p.lastSeen))
+      +field('Listing checked',dateLabel(p.detailChecked))+field('Metal assessment',metalAssessment(m))+field('First catalog sighting',dateLabel(p.firstSeen))+field('Last catalog sighting',dateLabel(p.lastSeen))
       +field('Record ID',p.id,'row-detail__field--technical')+'</dl></details>';
     return html.replace('</td>',info+'</td>');
   };

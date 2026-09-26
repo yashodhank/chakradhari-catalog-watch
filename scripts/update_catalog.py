@@ -26,6 +26,30 @@ def hashrow(r):
  return hashlib.sha256(json.dumps({k:r.get(k,'') for k in keys},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
 
 EXTRA_FIELDS=['gender_observed','price_status_observed','image_candidates_observed','detail_last_checked']
+EVIDENCE_FIELDS=('material','materials','metal','metal_type','product_material','description','short_description',
+                 'long_description','product_description','weight','weight_size','weightSize','size',
+                 'specification','specifications','product_specifications','features','details')
+
+def evidence_values(value):
+ """Read declared product facts from ProductData, without scraping page chrome."""
+ if isinstance(value,dict):
+  amount=value.get('value')
+  unit=value.get('unitText') or value.get('unitCode')
+  if amount not in (None,'') and unit: yield f'{amount} {unit}'
+  for item in value.values(): yield from evidence_values(item)
+ elif isinstance(value,(list,tuple)):
+  for item in value: yield from evidence_values(item)
+ elif isinstance(value,str) and value.strip():
+  yield value
+
+def merchant_evidence(*records):
+ values=[]
+ for record in records:
+  if not isinstance(record,dict): continue
+  for key in EVIDENCE_FIELDS:
+   if key in record: values.extend(evidence_values(record[key]))
+ return ' '.join(dict.fromkeys(text(value) for value in values if text(value)))
+
 def valid_image(value,base):
  if not isinstance(value,str) or not value.strip(): return ''
  u=urljoin(base,value.strip()); p=urlsplit(u)
@@ -115,9 +139,9 @@ def product_page(u):
   attrs=[]
   for k in ('size','color','title'):
    if main.get(k): attrs.append(f'{k}={main[k]}')
-  desc=' '.join([text(ld.get('name')),text(ld.get('description')),text(pdata.get('product_name'))])
-  mats=', '.join(x for x in ['Gold','Silver','Copper','Brass','Bronze','Kansa','Iron','Parad','Rudraksha','Sandalwood','Quartz','Gemstone'] if re.search(r'\b'+x+r'\b',desc,re.I))
-  ws='; '.join(dict.fromkeys(re.findall(r'\b\d+(?:\.\d+)?\s*(?:kg|gms?|grams?|gm|ml|litres?|liters?|lt|mm|cm|inch(?:es)?|carats?|ct)\b',desc,re.I)))[:500]
+  desc=' '.join([text(ld.get('name')),text(ld.get('description')),text(pdata.get('product_name')),merchant_evidence(pdata,main,ld)])
+  mats=', '.join(x for x in ['Gold','Silver','Platinum','Copper','Brass','Bronze','Kansa','Tin','Zinc','Aluminium','Lead','Nickel','Iron','Steel','Parad','Rudraksha','Sandalwood','Quartz','Gemstone'] if re.search(r'\b'+x+r'\b',desc,re.I))
+  ws='; '.join(dict.fromkeys(re.findall(r'\b\d+(?:\.\d+)?\s*(?:kg|g|gms?|grams?|gm|ml|litres?|liters?|lt|mm|cm|inch(?:es)?|carats?|ct)\b',desc,re.I)))[:500]
   name=text(pdata.get('product_name') or ld.get('name')).strip('"“”')
   name=re.split(r",\s*If it(?:'|’|&#39;)s specifically\b",name,maxsplit=1,flags=re.I)[0].rstrip(' ,:-')
   images=image_candidates(pdata,main,ld,h,u)

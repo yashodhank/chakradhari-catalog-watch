@@ -31,6 +31,15 @@ test('uses content-width grids for the affected responsive sections', () => {
   assert.match(styles, /\.rate-grid\{grid-template-columns:repeat\(auto-fit,minmax\(180px,1fr\)\)\}/);
 });
 
+test('renders benchmark rates as accessible purity cards without a WebGL dependency', () => {
+  assert.match(catalog, /class="rate-card rate-card--/);
+  assert.match(catalog, /rate-card__purity/);
+  assert.match(catalog, /Purity ring shows the published fineness/);
+  assert.match(styles, /\.rate-card__visual/);
+  assert.match(styles, /\.rate-card__purity::before/);
+  assert.doesNotMatch(catalog, /three(?:\.js)?|WebGL/i);
+});
+
 test('presents filtered catalog status as labelled metrics instead of one run-on sentence', () => {
   assert.match(explore, /class="scope scope--metrics"/);
   assert.match(explore, /const metric=.*scope__metric/);
