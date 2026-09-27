@@ -60,6 +60,13 @@ test('groups benchmark rates by decision value instead of rendering one long car
   assert.match(styles, /\.benchmark-references summary/);
 });
 
+test('places concise comparison guidance above the rates instead of a tall side pane', () => {
+  assert.match(index, /class="material-guidance"/);
+  assert.ok(index.indexOf('class="material-guidance"') < index.indexOf('id="metalRates"'));
+  assert.match(styles, /\.material-layout\{display:block/);
+  assert.match(styles, /\.material-guidance\{display:flex/);
+});
+
 test('gives every reference metal its own visual material tone', () => {
   assert.match(catalog, /Aluminium:'aluminium'/);
   assert.match(catalog, /Copper:'copper'/);
