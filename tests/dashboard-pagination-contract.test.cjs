@@ -50,6 +50,16 @@ test('renders benchmark rates as accessible purity cards without a WebGL depende
   assert.doesNotMatch(catalog, /three(?:\.js)?|WebGL/i);
 });
 
+test('groups benchmark rates by decision value instead of rendering one long card list', () => {
+  assert.match(catalog, /class="benchmark-groups"/);
+  assert.match(catalog, /class="benchmark-gold rate-card--gold"/);
+  assert.match(catalog, /class="benchmark-grade-list"/);
+  assert.match(catalog, /<details class="benchmark-references">/);
+  assert.match(catalog, /Base-metal references/);
+  assert.match(styles, /\.benchmark-groups\{display:grid/);
+  assert.match(styles, /\.benchmark-references summary/);
+});
+
 test('gives every reference metal its own visual material tone', () => {
   assert.match(catalog, /Aluminium:'aluminium'/);
   assert.match(catalog, /Copper:'copper'/);
