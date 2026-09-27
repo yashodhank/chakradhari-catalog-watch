@@ -8,6 +8,16 @@ const index = fs.readFileSync(path.join(docs, 'index.html'), 'utf8');
 const catalog = fs.readFileSync(path.join(docs, 'catalog.js'), 'utf8');
 const explore = fs.readFileSync(path.join(docs, 'explore.js'), 'utf8');
 const styles = fs.readFileSync(path.join(docs, 'refinements.css'), 'utf8');
+const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+
+test('credits Chakradhari and sends prospective buyers to the merchant directly', () => {
+  assert.match(index, /class="merchant-credit"/);
+  assert.match(index, /href="https:\/\/www\.chakradhari\.com\/"/);
+  assert.match(index, /contact Chakradhari directly/i);
+  assert.match(styles, /\.merchant-credit\{display:flex/);
+  assert.match(readme, /## With thanks to Chakradhari/);
+  assert.match(readme, /contact Chakradhari directly/i);
+});
 
 test('puts the collection chooser before reference material and the long product browser', () => {
   assert.ok(index.indexOf('id="collections"') < index.indexOf('id="materialBenchmarks"'));
