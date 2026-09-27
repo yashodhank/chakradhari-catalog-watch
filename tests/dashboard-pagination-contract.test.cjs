@@ -50,6 +50,18 @@ test('renders benchmark rates as accessible purity cards without a WebGL depende
   assert.doesNotMatch(catalog, /three(?:\.js)?|WebGL/i);
 });
 
+test('gives every reference metal its own visual material tone', () => {
+  assert.match(catalog, /Aluminium:'aluminium'/);
+  assert.match(catalog, /Copper:'copper'/);
+  assert.match(catalog, /Lead:'lead'/);
+  assert.match(catalog, /Nickel:'nickel'/);
+  assert.match(catalog, /Tin:'tin'/);
+  assert.match(catalog, /Zinc:'zinc'/);
+  for (const tone of ['aluminium', 'copper', 'lead', 'nickel', 'tin', 'zinc']) {
+    assert.match(styles, new RegExp('\\.rate-card--' + tone + ' \\.rate-card__visual'));
+  }
+});
+
 test('presents filtered catalog status as labelled metrics instead of one run-on sentence', () => {
   assert.match(explore, /class="scope scope--metrics"/);
   assert.match(explore, /const metric=.*scope__metric/);
