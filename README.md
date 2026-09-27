@@ -9,6 +9,10 @@
 
 An independent, searchable view of [Chakradhari's public product catalog](https://www.chakradhari.com/). Browse jewelry, gemstones, metals and other listed products; filter by category, stock, material, gender claim and price; inspect product images, seller claims and observed changes. The dashboard is a static site hosted on GitHub Pages, so visitors need no account.
 
+## With thanks to Chakradhari
+
+Thank you to the Chakradhari team for making their catalog publicly available. This independent monitor is for discovery and evidence review; for live product advice, availability or ordering, please [contact Chakradhari directly through their website](https://www.chakradhari.com/).
+
 ## What you can do
 
 - **Find products quickly:** Search names, category, material, size and common metal names in English, Hindi or transliteration. Combine search with stock, gender, metal, price and data-availability filters; share filtered results by URL.
