@@ -17,7 +17,7 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M4L3V3DV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div class="shell">
-    <aside class="side">
+    <aside class="side" id="sidebar">
       <a class="brand" href="#overview">Chakradhari Watch<small>Independent catalog monitor</small></a>
       <nav class="nav" aria-label="Dashboard sections">
         <a class="active" href="#overview">Overview</a>
@@ -115,7 +115,7 @@
           <button class="chip chip--quiet" id="clearFilters">Clear all</button>
         </div>
         <div class="results-actions" aria-label="Product result controls"><span id="shownTop" aria-live="polite">—</span><button class="load-more" id="loadMoreTop" type="button" aria-controls="body">Show more products</button></div>
-        <div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Availability</th><th>Price</th><th>Material / size</th><th>Reviews</th></tr></thead><tbody id="body"></tbody></table></div>
+        <div class="table-wrap"><table class="catalog-table"><colgroup><col class="col-product"><col class="col-stock"><col class="col-price"><col class="col-comparison"></colgroup><thead><tr><th scope="col">Product</th><th scope="col">Availability</th><th scope="col">Asking price</th><th scope="col">Metal comparison</th></tr></thead><tbody id="body"></tbody></table></div>
         <div class="results-actions results-actions--bottom"><button class="load-more" id="loadMoreBottom" type="button" aria-controls="body">Show more products</button></div>
         <div class="footer-row"><span id="shown">—</span><span>Press <kbd>/</kbd> to search · Filters are shareable by URL</span></div>
       </section>
@@ -128,5 +128,6 @@
   <script src="catalog-pagination.js"></script>
   <script src="catalog.js"></script>
   <script src="explore.js"></script>
+  <script src="layout.js"></script>
 </body>
 </html>
