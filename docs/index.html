@@ -10,7 +10,7 @@
   <meta name="description" content="Public catalog monitoring dashboard for Chakradhari products, stock and prices.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='27' fill='%23151b16' stroke='%23d7a932' stroke-width='5'/%3E%3Cpath d='M32 12v40M12 32h40M18 18l28 28M46 18L18 46' stroke='%23d7a932' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23f4efe2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="catalog.css?v=20261018-layout1">
-  <link rel="stylesheet" href="refinements.css?v=20261018-layout1">
+  <link rel="stylesheet" href="refinements.css?v=20261018-history1">
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
@@ -120,13 +120,14 @@
         <div class="footer-row"><span id="shown">—</span><span>Press <kbd>/</kbd> to search · Filters are shareable by URL</span></div>
       </section>
 
-      <section class="panel" id="changes" aria-labelledby="changesHeading"><div class="panel-head"><div><p class="section-kicker">Since the last catalog comparison</p><h2 id="changesHeading">Recent meaningful changes</h2></div><span class="meta" id="eventCount">—</span></div><div class="events" id="events"><div class="empty">Loading changes…</div></div></section>
+      <section class="panel" id="changes" aria-labelledby="changesHeading"><div class="panel-head"><div><p class="section-kicker">Recorded catalog history</p><h2 id="changesHeading">All catalog changes</h2></div><span class="meta" id="eventCount">—</span></div><div class="events" id="events"><div class="empty">Loading changes…</div></div></section>
 
       <section class="panel" id="coverage" aria-labelledby="coverageHeading"><div class="panel-head"><div><p class="section-kicker">Read before acting on a listing</p><h2 id="coverageHeading">Coverage and reliability</h2></div><span class="meta">Updated daily</span></div><div class="coverage"><div class="bars"><div class="bar-row"><span>Category sources</span><div class="bar"><i id="catBar"></i></div><b id="catCoverage">—</b></div><div class="bar-row"><span>Detail pages verified</span><div class="bar"><i class="warn" id="detailBar"></i></div><b id="detailCoverage">—</b></div></div><div class="notice"><strong>Important:</strong> Removal requires two consecutive successful complete sitemap comparisons. Partial or failed scans never advance removal status. Always verify price and availability on the linked product page.</div></div></section>
     </main>
   </div>
   <script src="catalog-pagination.js"></script>
-  <script src="catalog.js?v=20261018-layout1"></script>
+  <script src="events.js?v=20261018-history1"></script>
+  <script src="catalog.js?v=20261018-history1"></script>
   <script src="explore.js?v=20261018-layout1"></script>
   <script src="layout.js?v=20261018-layout1"></script>
 </body>
