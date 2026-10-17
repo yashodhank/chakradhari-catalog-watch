@@ -41,21 +41,13 @@
   </div><div class="scope scope--metrics" id="filteredSummary" role="status" aria-live="polite">Loading product evidence…</div>`);
   $('#coverage').insertAdjacentHTML('beforebegin','<section class="panel composition-panel" id="catalogComposition" aria-labelledby="compositionHeading"><div class="panel-head"><div><p class="section-kicker">Catalog health</p><h2 id="compositionHeading">Catalog composition</h2></div><span class="meta">Entire loaded catalog</span></div><p class="panel-intro">A quick view of where listings are concentrated and which merchant-provided fields are available. It describes the monitored catalog, not product quality.</p><div class="insight-grid"><div><h3>Largest categories</h3><div id="categoryDistribution"></div></div><div><h3>Available product information</h3><div id="dataDistribution"></div></div></div></section>');
   $('#products').insertAdjacentHTML('afterend','<section class="panel"><div class="panel-head"><h2>Data and methodology</h2></div><div class="data-links"><a href="products-manifest.json">JSON manifest</a><a href="data-guide.md">Field definitions and bot guide</a><button class="chip" id="exportResults">Download filtered JSON</button></div><p class="method">One record per canonical product URL; complete variant coverage is not available. Catalog sightings are not fresh price checks. Prices, availability and material claims must be confirmed with the merchant. Image presence does not guarantee a working image.</p></section>');
-  const originalRow = row;
   row = function(p) {
-    let html = originalRow(p).replace(/<span class="thumb-fallback"[^>]*>[^<]*<\/span>/,'<span class="thumb-fallback">No image<br>available</span>');
     const images=[...new Set([...(Array.isArray(p.imageCandidates)?p.imageCandidates:[]),p.image].filter(u=>typeof u==='string'&&/^https:\/\//.test(u)&&!/\/img\/x\.gif(?:\?|$)/.test(u)))];
-    const imageHtml=images.length?'<img class="thumb lazy-thumb" data-src="'+esc(images[0])+'" data-candidates="'+esc(JSON.stringify(images.slice(1)))+'" alt="" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin">':'';
-    html=html.replace(/<img class="thumb lazy-thumb"[^>]*>/,imageHtml);
-    if(images.length&&!html.includes('class="thumb lazy-thumb"'))html=html.replace('</span></div><div><a href=', '</span>'+imageHtml+'</div><div><a href=');
-    if(p.availability==='unknown') html=html.replace('class="pill "','class="pill unknown"');
-    const gender=p.gender==='-'?'Not stated':p.gender;
-    const material='<td><div>'+esc(p.material||'—')+'</div>';
-    html=html.replace(material,'<td><div>'+esc(p.material||'—')+'</div><div class="desc">Gender: '+esc(gender)+'</div>');
+    const imageHtml='<div class="thumb-wrap"><span class="thumb-fallback">No image</span>'+(images.length?'<img class="thumb lazy-thumb" data-src="'+esc(images[0])+'" data-candidates="'+esc(JSON.stringify(images.slice(1)))+'" alt="" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin">':'')+'</div>';
+    const gender=p.gender==='-'?'Not stated':(p.gender||'Not stated');
     let shownPrice='Price unavailable';
     if(p.priceStatus==='contact_for_price')shownPrice='<a href="'+esc(p.url)+'" target="_blank" rel="noopener">Contact seller for price</a>';
     else if(price(p)!=null) shownPrice=(p.sale!=null?'<span class="old">'+fmt.format(p.regular)+'</span><br><span class="sale">'+fmt.format(p.sale)+'</span>':fmt.format(p.regular))+(p.priceStatus==='listed_unverified'?'<div class="desc">Previously observed · verify with seller</div>':'');
-    html=html.replace(/<td class="price">[\s\S]*?<\/td>/,'<td class="price">'+shownPrice+(p.priceStatus==='contact_for_price'?'':metalLine(p))+(p.unitPrice?'<div class="metal">Product ask / stated ct '+fmt.format(p.unitPrice.amount)+' / carat<br><small>May include setting · no gem benchmark</small></div>':'')+'</td>');
     const m=p.metalEstimate;
     const dateLabel=value=>{const date=value?new Date(value):null;return date&&!Number.isNaN(date.valueOf())?date.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Kolkata'}):'Not recorded'};
     const metalAssessment=value=>{if(!value)return 'No recognized metal claim';if(value.status==='variant_estimates')return 'Conditional estimates by size; price association unverified';if(value.status==='estimated')return 'Comparable raw-metal value available';const needs=Array.isArray(value.missingEvidence)&&value.missingEvidence.length?value.missingEvidence:({composition_unknown:['alloy composition','net metal weight'],weight_missing:['net metal weight'],weight_ambiguous:['one stated net metal weight'],net_metal_weight_unknown:['net metal weight excluding non-metal parts'],purity_unknown:['stated metal purity'],plated_or_coated:['solid-metal composition','net metal weight'],rate_missing:['validated reference rate']}[value.status]||[]);return 'No calculation: '+(needs.length?'need '+needs.join(' and '):value.status.replaceAll('_',' '))};
@@ -63,8 +55,17 @@
     const info='<details class="row-detail"><summary><span class="row-detail__title">Product details</span><span class="row-detail__hint">Merchant data &amp; catalog history</span></summary><dl class="row-detail__fields">'
       +field('Gender claim',gender)+field('Merchant material',p.material||'Not provided')+field('Merchant weight / size',p.weightSize||'Not provided')+field('Price state',(p.priceStatus||'unknown').replaceAll('_',' '))
       +field('Listing checked',dateLabel(p.detailChecked))+field('Metal assessment',metalAssessment(m))+field('First catalog sighting',dateLabel(p.firstSeen))+field('Last catalog sighting',dateLabel(p.lastSeen))
-      +field('Record ID',p.id,'row-detail__field--technical')+'</dl></details>';
-    return html.replace('</td>',info+'</td>');
+      +field('Description',p.subtitle||'Not provided')+field('Reviews',p.reviews==null?'No review count':p.reviews+' reviews'+(p.rating!=null?' · '+p.rating+' / 5':''))+field('Record ID',p.id,'row-detail__field--technical')+'</dl></details>';
+    const stock='<span class="pill '+(p.availability==='out_of_stock'?'out':p.availability==='in_stock'?'':'unknown')+'">'+(p.availability==='in_stock'?'In stock':p.availability==='out_of_stock'?'Out of stock':'Stock unknown')+'</span>';
+    let comparison='<span class="desc">No metal comparison</span>';
+    if(m && p.priceStatus!=='contact_for_price') {
+      const headline=m.status==='variant_estimates' ? fmt.format(m.metalValueRange[0])+' – '+fmt.format(m.metalValueRange[1]) : m.status==='estimated' ? fmt.format(m.metalValue) : 'More evidence needed';
+      const context=m.status==='variant_estimates' ? m.variants.length+' sizes · conditional raw-metal range' : m.status==='estimated' ? 'Estimated raw-metal value' : unavailableMetalReason(m);
+      comparison='<div class="comparison-head">'+esc(headline)+'</div><div class="desc">'+esc(context)+'</div>'+(m.purity!=null?'<div class="purity-tag">'+esc(m.purity/10)+'% '+esc(m.metal)+' · merchant claim</div>':'')+'<details class="comparison-detail"><summary>'+(m.status==='variant_estimates'?'View sizes & calculation':'View calculation & evidence')+'</summary>'+metalLine(p)+'</details>';
+    }
+    const unit=p.unitPrice?'<div class="desc">'+fmt.format(p.unitPrice.amount)+' / stated carat<br>Includes setting where applicable</div>':'';
+    return '<tr class="catalog-row"><td class="product-cell" data-label="Product"><div class="product">'+imageHtml+'<div class="product-copy"><a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+esc(p.name)+'</a><div class="product-category">'+esc(p.category||p.material||'Uncategorized')+'</div><div class="desc product-summary">'+esc(p.subtitle||'')+'</div><a class="merchant-open" href="'+esc(p.url)+'" target="_blank" rel="noopener">View at merchant ↗</a></div></div></td><td class="stock-cell" data-label="Availability">'+stock+'</td><td class="price" data-label="Asking price"><strong class="asking-price">'+shownPrice+'</strong>'+unit+'<div class="desc">Listing checked '+esc(dateLabel(p.detailChecked))+'</div></td><td class="comparison-cell" data-label="Metal comparison">'+comparison+'</td></tr><tr class="evidence-row"><td colspan="4">'+info+'</td></tr>';
+
   };
   const originalRender=render;
   const originalData=()=>DATA;
