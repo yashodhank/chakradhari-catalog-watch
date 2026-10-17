@@ -58,7 +58,7 @@ for r in rows:
  if p['priceStatus']=='contact_for_price': p['regular']=p['sale']=None
  listed=p['sale'] if p['sale'] is not None else p['regular']
  p['unitPrice']=product_asking_per_carat(p['name'],p['category'],p['weightSize'],listed)
- p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}),rate_metadata=metal_data.get('latest',{}).get('otherRates',{}))
+ p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}),rate_metadata=metal_data.get('latest',{}).get('otherRates',{}),benchmark_metadata=metal_data.get('latest',{}))
  products.append(p)
 
 product_by_url={p['url']:p for p in products}

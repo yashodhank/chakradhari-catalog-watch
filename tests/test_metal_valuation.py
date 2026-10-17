@@ -66,6 +66,43 @@ class MetalValuationTests(unittest.TestCase):
         value = self.estimate('22K Gold chain 11 g')
         self.assertEqual(value['purity'], 916)
 
+    def test_screenshot_variants_preserve_purity_without_price_guess(self):
+        result = self.estimate('99.6% Silver Kacchi Kairi Payal',
+                               weightSize='9 Inch; 43gm; 10 Inch; 47gm; 11 Inch; 52gm')
+        self.assertEqual(result['status'], 'variant_estimates')
+        self.assertEqual(result['purity'], 996)
+        self.assertEqual([v['weightGrams'] for v in result['variants']], [43, 47, 52])
+        self.assertAlmostEqual(result['variants'][0]['fineMetalGrams'], 42.828)
+        self.assertEqual(result['variants'][0]['metalValue'], round(43 * 100 * 996 / 999, 2))
+        for value in [result] + result['variants']:
+            self.assertNotIn('retailResidual', value)
+            self.assertNotIn('listedPrice', value)
+
+    def test_missing_weight_keeps_known_purity(self):
+        result = self.estimate('99.6% Silver Payal')
+        self.assertEqual(result['status'], 'weight_missing')
+        self.assertEqual(result['purity'], 996)
+
+    def test_incomplete_or_reordered_pairs_stay_blocked(self):
+        for weights in ['11 Inch; 9 Inch; 106gm; 10 Inch; 115gm; 127gm',
+                        '190ml; 156g; 47g', '9 Inch; 43gm; 10 Inch; 47gm; 52gm']:
+            self.assertEqual(self.estimate('99.6% Silver item', weightSize=weights)['status'], 'weight_ambiguous')
+
+    def test_conflicting_purity_blocked(self):
+        self.assertEqual(self.estimate('99.6% Silver Payal', subtitle='99.9% Silver', weightSize='43g')['status'], 'purity_conflict')
+
+    def test_variant_safeguards(self):
+        for name in ['999 Silver plated payal', '999 Silver rudraksha payal', 'Silver payal']:
+            result = self.estimate(name, weightSize='9 Inch; 43gm; 10 Inch; 47gm')
+            self.assertNotEqual(result['status'], 'variant_estimates')
+
+    def test_benchmark_provenance_and_kg(self):
+        result = metal_estimate({'name': '99.9% Silver bar', 'weightSize': '1kg'},
+                                {'Silver 999': 100000}, benchmark_metadata={'date': '2026-10-16', 'source': 'test'})
+        self.assertEqual(result['metalValue'], 100000)
+        self.assertEqual(result['fineMetalGrams'], 999)
+        self.assertEqual(result['rateDate'], '2026-10-16')
+
 
 if __name__ == '__main__':
     unittest.main()
