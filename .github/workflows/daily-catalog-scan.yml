@@ -6,6 +6,7 @@ on:
       - ".github/workflows/daily-catalog-scan.yml"
       - "scripts/update_catalog.py"
       - "scripts/build_site.py"
+      - "scripts/event_history.py"
       - "scripts/metal_valuation.py"
       - "scripts/update_reference_rates.py"
       - "tests/**"

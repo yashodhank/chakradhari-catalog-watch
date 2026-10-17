@@ -75,27 +75,8 @@ ins=sum(p['availability']=='in_stock' for p in products)
 outs=sum(p['availability']=='out_of_stock' for p in products)
 prices=[p['sale'] if p['sale'] is not None else p['regular'] for p in products]
 prices=[p for p in prices if p is not None]
-events=[]
-try:
- with (DATA/'change-events.csv').open(encoding='utf-8-sig',newline='') as f:
-  raw_events=list(csv.DictReader(f))[-250:]
- for e in reversed(raw_events):
-  et=e.get('event_type')
-  pct=number(e.get('percentage_change'))
-  oldn=number(e.get('old_value_normalized'),True)
-  current=product_by_url.get(e.get('canonical_url',''))
-  if et=='price_increase' and oldn is not None and current and current.get('sale') is None and (e.get('canonical_url',''),round(oldn,2)) in historical_sales:
-   et='sale_ended'
-  # Retain anomalous rows in the audit CSV, but do not surface known
-  # conversion-shaped localization artifacts as customer-facing changes.
-  if et=='price_decrease' and pct is not None and -99.5<=pct<=-90 and not e.get('notes'):
-   continue
-  if et in {'added','removed_after_two_consecutive_successful_full_scans','back_in_catalog','out_of_stock','restocked','price_increase','price_decrease','sale_started','sale_ended'}:
-   events.append({'at':e.get('event_at',''),'type':et,'name':e.get('name_observed',''),
-                  'url':e.get('canonical_url',''),'old':e.get('old_value_observed',''),'new':e.get('new_value_observed',''),
-                  'percent':e.get('percentage_change','')})
-except FileNotFoundError:
- pass
+from event_history import build_events
+events=build_events(DATA,DOCS)
 try:
  sources=json.loads((DATA/'sources.json').read_text('utf-8')).get('sources',[])
 except Exception:
