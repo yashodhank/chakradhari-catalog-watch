@@ -25,7 +25,7 @@ ALIASES = {
     'Mercury': r'mercury|parad|पारद',
 }
 ALLOYS = {'Steel', 'Brass', 'Bronze', 'Panchdhatu'}
-WEIGHT = r'(?<![\d.])(\d+(?:\.\d+)?)\s*(kg|kilograms?|grams?|gms?|gm|g)\b'
+WEIGHT = r'(?<![\d.,])((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)\s*(kg|kilograms?|grams?|gms?|gm|g)\b'
 
 
 def number(value):
@@ -42,17 +42,44 @@ def unavailable(result, status, *missing):
     return result
 
 
+
+def purity_claims(text, metals):
+    """Keep metal-scoped source wording; ingredient purity is not an alloy ratio."""
+    claims = []
+    for metal in metals:
+        alias = '(?:' + ALIASES[metal] + ')'
+        patterns = [
+            (r'(?<![\d.])(\d+(?:\.\d+)?)\s*%\s*(?:pure\s+)?(?:Nepaliya\s+)?' + alias + r'(?!\w)', 10),
+            (r'(?<!\w)' + alias + r'\s*(?:purity\s*)?[:=-]?\s*(\d+(?:\.\d+)?)\s*%', 10),
+        ]
+        if metal in {'Gold', 'Silver', 'Platinum'}:
+            grade = r'(999(?:\.9)?|995|950|925|916|900|750|585)'
+            patterns += [
+                (r'(?<![\d.])' + grade + r'\s*(?:fine\s+)?' + alias + r'(?!\w)', 1),
+                (r'(?<!\w)' + alias + r'\s*(?:fineness\s*)?[:=-]?\s*' + grade + r'(?![\d.]|\s*(?:g|gm|grams?|kg|mm|cm)\b)', 1),
+            ]
+        if len(metals) == 1 and metal not in ALLOYS:
+            patterns += [(r'\b(?:purity|fineness|pure)\s*[:=-]?\s*(\d+(?:\.\d+)?)\s*%', 10)]
+        for pattern, scale in patterns:
+            for match in re.finditer(pattern, text, re.I):
+                claims.append({'metal': metal, 'purity': float(match[1]) * scale, 'evidence': match[0]})
+        if metal == 'Gold':
+            for match in re.finditer(r'(?<!\d)(24|22|18|14)\s*(?:k|kt|karat|carat)\s*(?:gold)?\b', text, re.I):
+                claims.append({'metal': metal, 'purity': {'24':999, '22':916, '18':750, '14':585}[match[1]], 'evidence': match[0]})
+    return list({(c['metal'], c['purity'], c['evidence']): c for c in claims}.values())
+
+
 def metal_estimate(p, rates, *, rate_metadata=None, benchmark_metadata=None):
     """Return an evidence-labelled estimate or explicit non-estimable status."""
-    fields = {k: str(p.get(k) or '') for k in ('name', 'material', 'weightSize', 'subtitle')}
+    fields = {k: str(p.get(k) or '') for k in ('name', 'material', 'weightSize', 'subtitle', 'specificationEvidence')}
     text = ' '.join(fields.values())
     # Material is the best field, but plating/composite warnings inspect all text.
-    identity = fields['material'] + ' ' + fields['name']
+    identity = fields['material'] + ' ' + fields['name'] + ' ' + fields['specificationEvidence']
     metals = [name for name, pattern in ALIASES.items()
               if re.search(r'(?<!\w)(?:' + pattern + r')(?!\w)', identity, re.I)]
     if not metals:
         return None
-    plated = bool(re.search(r'\b(?:plat(?:ed|ing)|coated|gold[ -]filled|vermeil|silver[ -]tone|gold[ -]tone)\b', text, re.I))
+    plated = bool(re.search(r'\b(?:plat(?:ed|ing)|coat(?:ed|ing)|gold[ -]filled|vermeil|silver[ -]tone|gold[ -]tone)\b', text, re.I))
     metal = metals[0] if len(metals) == 1 else ' / '.join(metals)
     result = {'metal': metal, 'detectedMetals': metals, 'materialKind': 'alloy' if any(m in ALLOYS for m in metals) else 'metal',
               'purityBasis': 'unknown', 'status': 'weight_missing', 'calculationState': 'unavailable',
@@ -61,34 +88,27 @@ def metal_estimate(p, rates, *, rate_metadata=None, benchmark_metadata=None):
               'caveat': 'Seller claims are not independently assayed. Retail residual is not a making-charge quote.'}
     if 'Mercury' in metals:
         result['safetyNote'] = 'Parad is a seller material claim; mercury content and binding composition are unverified. No handling-safety inference.'
+    claims = purity_claims(text, metals)
+    result['purityClaims'] = claims
+    conflict = any(len({c['purity'] for c in claims if c['metal'] == m}) > 1 for m in metals)
+    invalid = any(not 0 < c['purity'] <= 1000 for c in claims)
+    purity = None
+    if len(metals) == 1 and metal not in ALLOYS and claims and not conflict and not invalid:
+        purity = claims[0]['purity']
+        result.update(purity=round(purity, 3), purityBasis='seller_claim')
+    if claims and (len(metals) > 1 or any(m in ALLOYS for m in metals)):
+        result['purityScope'] = 'ingredient_claims_not_alloy_proportions'
+    if conflict or invalid:
+        return unavailable(result, 'purity_conflict', 'consistent valid metal purity')
     if plated:
         result.update(materialKind='plated')
-        return unavailable(result, 'plated_or_coated', 'solid-metal composition', 'net metal weight')
+        result.pop('purity', None)
+        result['purityBasis'] = 'unknown'
+        if claims: result['purityScope'] = 'component_claims_not_finished_purity'
+        return unavailable(result, 'plated_or_coated', 'separate base and coating weights', 'alloy composition' if any(m in ALLOYS for m in metals) else 'solid-metal composition')
     if len(metals) > 1:
         result.update(materialKind='mixed')
         return unavailable(result, 'composition_unknown', 'alloy composition', 'net metal weight')
-    purity = None
-    claims = {float(m[1]) * 10 for m in re.finditer(
-        r'(\d+(?:\.\d+)?)\s*%\s*(?:pure\s*)?(?:' + ALIASES[metal] + r')\b', text, re.I)}
-    if len(claims) > 1 or any(not 0 < c <= 1000 for c in claims):
-        return unavailable(result, 'purity_conflict', 'consistent valid metal purity')
-    pct = re.search(r'(\d+(?:\.\d+)?)\s*%\s*(?:pure\s*)?(?:' + ALIASES[metal] + r')\b', text, re.I)
-    if not pct:
-        pct = re.search(r'\b(?:purity|pure)\s*[:=-]?\s*(\d+(?:\.\d+)?)\s*%', text, re.I)
-    if pct and 0 < float(pct[1]) <= 100:
-        purity = float(pct[1]) * 10
-    if purity is None and metal in {'Gold', 'Silver', 'Platinum'}:
-        mark = re.search(r'(?<![\d.])(999(?:\.9)?|995|950|925|916|900|750|585)(?![\d.]|\s*(?:g|gm|grams?|kg)\b)', text, re.I)
-        if mark:
-            purity = float(mark[1])
-    if purity is None and metal == 'Gold':
-        karat = re.search(r'(?<!\d)(24|22|18|14)\s*(?:k|kt|karat|carat)\b', text, re.I)
-        if karat:
-            # Use the fineness grades published alongside the reference rates,
-            # rather than a repeating decimal that cannot select a benchmark.
-            purity = {'24': 999, '22': 916, '18': 750, '14': 585}[karat[1]]
-    if purity is not None:
-        result.update(purity=round(purity, 3), purityBasis='seller_claim')
     # Only accept a complete alternating size/weight sequence; do not guess
     # associations in flattened, reordered or component-weight evidence.
     pair = r'(\d+(?:\.\d+)?\s*(?:inches|inch|mm|cm))\s*;\s*(' + WEIGHT + r')'
@@ -110,17 +130,34 @@ def metal_estimate(p, rates, *, rate_metadata=None, benchmark_metadata=None):
     # Do not silently choose the minimum of variant, gross and shipping weights.
     weight_text = fields['weightSize'] or text
     matches = list(re.finditer(WEIGHT, weight_text, re.I))
-    weights = {round(float(m[1]) * (1000 if m[2].lower().startswith('k') else 1), 6) for m in matches}
+    weights = {round(float(m[1].replace(',', '')) * (1000 if m[2].lower().startswith('k') else 1), 6) for m in matches}
     ranged = bool(re.search(r'\d\s*(?:[-–—/]|to|±)\s*\d', weight_text))
-    gross = bool(re.search(r'\b(?:shipping|packed|package|gross)\s*(?:weight)?\b', weight_text, re.I))
-    if ranged or len(weights) > 1:
+    gross = bool(re.search(r'\bgross\b|\b(?:shipping|packed|package)\s+weight\b', text, re.I))
+    qualified = bool(re.search(r'\b(?:up to|at least|minimum|maximum|between)\b|[<>≤≥]', weight_text, re.I))
+    ranged = ranged or bool(re.search(r'\d+(?:\.\d+)?\s*(?:[-–—]|to|±)\s*\d+(?:\.\d+)?\s*(?:kg|grams?|gms?|g)\b', text, re.I))
+    qualified = qualified or bool(re.search(r'\b(?:up to|at least|minimum|maximum)\s*(?:weight\s*[:=-]?\s*)?\d+(?:\.\d+)?\s*(?:kg|grams?|gms?|g)\b', text, re.I))
+    if ranged or qualified or len(weights) > 1:
         return unavailable(result, 'weight_ambiguous', 'one stated net metal weight')
     if not weights or not 0 < next(iter(weights)) <= 100000:
         return result
     weight = next(iter(weights))
     result.update(weightGrams=weight, weightBasis='seller_claim', weightEvidence=matches[0][0])
-    if gross or re.search(r'\b(?:stone|stones|wood|wooden|rudraksha|beads|gemstone|crystal|filled)\b', text, re.I):
+    if gross or re.search(r'\b(?:stone|stones|wood|wooden|rosewood|rudraksha|beads|gemstone|crystal|diamond|ruby|emerald|sapphire|pearl|filled)\b', text, re.I):
         return unavailable(result, 'net_metal_weight_unknown', 'net metal weight excluding non-metal parts')
+    multiple = bool(re.search(r'\b(?:\d*\s*(?:pair|set|pack)|(?:[2-9]|[1-9]\d+)\s*(?:pieces?|pcs))\b', fields['name'], re.I))
+    total_basis = bool(re.search(r'\b(?:total|combined|set|pair)\s*(?:net\s*)?(?:metal\s*)?weight\b|\bweight\b[^.;]{0,20}\b(?:per pair|per set|total)\b', text, re.I))
+    for match in re.finditer(WEIGHT + r'\s*\(\s*(pair|1\s*set|\d+\s*pieces?)\s*\)', text, re.I):
+        basis = match[3].lower().replace(' ', '')
+        if basis == 'pair' and re.search(r'\bpair\b', fields['name'], re.I):
+            total_basis = True
+        elif basis == '1set' and re.search(r'\b(?:1\s*)?set\b', fields['name'], re.I):
+            total_basis = True
+        elif re.match(r'\d+pieces?', basis):
+            count = re.match(r'\d+', basis)[0]
+            if re.search(r'\b' + count + r'\s*pieces?\b', fields['name'], re.I):
+                total_basis = True
+    if multiple and not total_basis:
+        return unavailable(result, 'quantity_basis_unknown', 'confirmation whether weight is per piece or for the complete set')
     if metal in ALLOYS:
         return unavailable(result, 'composition_unknown', 'alloy composition')
     if purity is None:
@@ -151,7 +188,7 @@ def metal_estimate(p, rates, *, rate_metadata=None, benchmark_metadata=None):
     value = weight * per_gram
     result.update(status='estimated', calculationState='available', missingEvidence=[], ratePerGram=round(per_gram, 4), metalValue=round(value, 2), currency='INR', fineMetalGrams=round(weight * purity / 1000, 6))
     listed = number(p.get('sale') if p.get('sale') is not None else p.get('regular'))
-    if listed is not None and listed >= 0:
+    if listed is not None and listed >= 0 and p.get('currency', 'INR') == 'INR':
         result.update(listedPrice=listed, retailResidual=round(listed-value, 2),
                       metalSharePct=round(100*value/listed, 1) if listed else None)
         # Tax decomposition only from explicit product-specific evidence.

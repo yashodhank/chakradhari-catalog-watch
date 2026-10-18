@@ -18,3 +18,10 @@ test('unknown weight still displays known purity and escapes variant evidence', 
   assert.ok(!html.includes('<img'));
   assert.ok(html.includes('&lt;img'));
 });
+test('ingredient claims are visible without inventing finished alloy purity', () => {
+  const html = context.metalLine({metalEstimate:{metal:'Copper / Zinc / Brass',status:'composition_unknown',purityScope:'ingredient_claims_not_alloy_proportions',purityClaims:[{metal:'Copper',purity:999,evidence:'99.9% pure Copper <source>'},{metal:'Zinc',purity:999,evidence:'99.9% pure Zinc'}]}});
+  assert.match(html, /Ingredient purity claims; alloy proportions unknown/);
+  assert.match(html, /Copper: 99.9%/);
+  assert.match(html, /Zinc: 99.9%/);
+  assert.ok(!html.includes('<source>'));
+});
