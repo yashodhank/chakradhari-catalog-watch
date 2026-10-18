@@ -48,6 +48,10 @@ for r in rows:
   'reviews':number(r.get('review_count_normalized')), 'rating':number(r.get('rating_normalized')),
   'image':r.get('primary_image_url',''), 'imageCandidates':[],
   'subtitle':r.get('subtitle_observed',''),
+  'specificationEvidence':r.get('specification_evidence_observed',''),
+  'materialEvidenceChecked':r.get('specification_checked_at',''),
+  'currency':r.get('currency_normalized') or 'unknown',
+  'variantContext':r.get('variant_attributes_observed',''),
   'gender':r.get('gender_observed') or gender_from_name(r.get('name_observed')),
   'priceStatus':r.get('price_status_observed') or ('listed_unverified' if number(r.get('regular_price_normalized'),True) is not None else 'unknown'),
   'detailChecked':r.get('detail_last_checked',''),
@@ -57,7 +61,7 @@ for r in rows:
  if p['image'] and p['image'] not in p['imageCandidates']: p['imageCandidates'].append(p['image'])
  if p['priceStatus']=='contact_for_price': p['regular']=p['sale']=None
  listed=p['sale'] if p['sale'] is not None else p['regular']
- p['unitPrice']=product_asking_per_carat(p['name'],p['category'],p['weightSize'],listed)
+ p['unitPrice']=product_asking_per_carat(p['name'],p['category'],p['weightSize'],listed) if p['currency']=='INR' else None
  p['metalEstimate']=metal_estimate(p,metal_data.get('latest',{}).get('rates',{}),rate_metadata=metal_data.get('latest',{}).get('otherRates',{}),benchmark_metadata=metal_data.get('latest',{}))
  products.append(p)
 
