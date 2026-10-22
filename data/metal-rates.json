@@ -1,8 +1,8 @@
 {
   "latest": {
-    "date": "2026-10-19",
+    "date": "2026-10-21",
     "session": "PM",
-    "observed_at": "2026-10-21T07:52:13.480358+00:00",
+    "observed_at": "2026-10-22T07:47:59.003590+00:00",
     "source": "https://www.ibjarates.com/",
     "units": {
       "gold": "INR per 10 g",
@@ -11,95 +11,95 @@
     },
     "gst_included": false,
     "rates": {
-      "Gold 999": 145944,
-      "Gold 995": 145360,
-      "Gold 916": 133685,
-      "Gold 750": 109458,
-      "Gold 585": 85377,
-      "Silver 999": 208750,
-      "Platinum 999": 57026
+      "Gold 999": 144105,
+      "Gold 995": 143528,
+      "Gold 916": 132000,
+      "Gold 750": 108079,
+      "Gold 585": 84301,
+      "Silver 999": 206783,
+      "Platinum 999": 58143
     },
     "otherRates": {
       "Aluminium": {
-        "ratePerGram": 0.31164,
+        "ratePerGram": 0.31014,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       },
       "Copper": {
-        "ratePerGram": 1.37395,
+        "ratePerGram": 1.36734,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       },
       "Lead": {
-        "ratePerGram": 0.1778,
+        "ratePerGram": 0.17694,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       },
       "Tin": {
-        "ratePerGram": 5.09864,
+        "ratePerGram": 5.07412,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       },
       "Nickel": {
-        "ratePerGram": 1.54956,
+        "ratePerGram": 1.54211,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       },
       "Zinc": {
-        "ratePerGram": 0.3817,
+        "ratePerGram": 0.37986,
         "currency": "INR",
         "purity": 1000,
         "basis": "monthly_reference",
         "date": "2026-09",
         "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
         "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-        "fxDate": "2026-10-20",
+        "fxDate": "2026-10-21",
         "unit": "INR per gram",
         "context": "International bulk commodity average, not Indian retail"
       }
     },
     "monthlyReference": {
       "month": "2026-09",
-      "fxDate": "2026-10-20",
-      "fxInrPerUsd": 94.925546,
+      "fxDate": "2026-10-21",
+      "fxInrPerUsd": 94.469023,
       "worldBankSource": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
       "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-      "observedAt": "2026-10-21T07:52:14.840298+00:00"
+      "observedAt": "2026-10-22T07:48:00.639350+00:00"
     }
   },
   "history": [
@@ -522,86 +522,107 @@
         "Silver 999": 208750,
         "Platinum 999": 57026
       }
+    },
+    {
+      "date": "2026-10-21",
+      "session": "PM",
+      "observed_at": "2026-10-22T07:47:59.003590+00:00",
+      "source": "https://www.ibjarates.com/",
+      "units": {
+        "gold": "INR per 10 g",
+        "silver": "INR per kg",
+        "platinum": "INR per 10 g"
+      },
+      "gst_included": false,
+      "rates": {
+        "Gold 999": 144105,
+        "Gold 995": 143528,
+        "Gold 916": 132000,
+        "Gold 750": 108079,
+        "Gold 585": 84301,
+        "Silver 999": 206783,
+        "Platinum 999": 58143
+      }
     }
   ],
   "referenceHistory": [
     {
       "month": "2026-09",
-      "fxDate": "2026-10-20",
-      "fxInrPerUsd": 94.925546,
+      "fxDate": "2026-10-21",
+      "fxInrPerUsd": 94.469023,
       "worldBankSource": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
       "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-      "observedAt": "2026-10-21T07:52:14.840298+00:00",
+      "observedAt": "2026-10-22T07:48:00.639350+00:00",
       "rates": {
         "Aluminium": {
-          "ratePerGram": 0.31164,
+          "ratePerGram": 0.31014,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         },
         "Copper": {
-          "ratePerGram": 1.37395,
+          "ratePerGram": 1.36734,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         },
         "Lead": {
-          "ratePerGram": 0.1778,
+          "ratePerGram": 0.17694,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         },
         "Tin": {
-          "ratePerGram": 5.09864,
+          "ratePerGram": 5.07412,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         },
         "Nickel": {
-          "ratePerGram": 1.54956,
+          "ratePerGram": 1.54211,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         },
         "Zinc": {
-          "ratePerGram": 0.3817,
+          "ratePerGram": 0.37986,
           "currency": "INR",
           "purity": 1000,
           "basis": "monthly_reference",
           "date": "2026-09",
           "source": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
           "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-          "fxDate": "2026-10-20",
+          "fxDate": "2026-10-21",
           "unit": "INR per gram",
           "context": "International bulk commodity average, not Indian retail"
         }
