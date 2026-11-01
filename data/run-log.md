@@ -1253,3 +1253,19 @@ Six sitemap-listed Rudraksha URLs whose detail pages were malformed or returned 
 - Currency-mismatched localized prices ignored: 0
 - Localized price observations repaired from compatible structured data: 0
 - Evidence: https://www.chakradhari.com/sitemap/products/1.xml
+
+## 2026-11-01T09:27:24Z
+
+- Run ID: 20261101T092724Z
+- Result: Partial detail refresh; complete product-sitemap catalog boundary.
+- Product sitemap URLs: 1,862
+- Active products: 1,877
+- In stock: 1,844
+- Out of stock: 17
+- Added: 15; suspected removals: 15; confirmed removals: 1; restocks: 0; price changes: 1.
+- Detail pages attempted/succeeded: 295/289
+- Access errors: 6
+- Currency detected: INR
+- Currency-mismatched localized prices ignored: 0
+- Localized price observations repaired from compatible structured data: 0
+- Evidence: https://www.chakradhari.com/sitemap/products/1.xml
