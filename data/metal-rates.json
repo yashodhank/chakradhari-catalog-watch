@@ -2,7 +2,7 @@
   "latest": {
     "date": "2026-11-06",
     "session": "PM",
-    "observed_at": "2026-11-08T09:16:38.271056+00:00",
+    "observed_at": "2026-11-09T09:59:22.484412+00:00",
     "source": "https://www.ibjarates.com/",
     "units": {
       "gold": "INR per 10 g",
@@ -99,7 +99,7 @@
       "fxInrPerUsd": 93.922526,
       "worldBankSource": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
       "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-      "observedAt": "2026-11-08T09:16:39.677570+00:00"
+      "observedAt": "2026-11-09T09:59:24.032035+00:00"
     }
   },
   "history": [
@@ -804,7 +804,7 @@
       "fxInrPerUsd": 93.922526,
       "worldBankSource": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx",
       "fxSource": "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml",
-      "observedAt": "2026-11-08T09:16:39.677570+00:00",
+      "observedAt": "2026-11-09T09:59:24.032035+00:00",
       "rates": {
         "Aluminium": {
           "ratePerGram": 0.2875,
